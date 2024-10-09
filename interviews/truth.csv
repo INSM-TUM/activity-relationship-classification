@@ -1,0 +1,37 @@
+sep=;First Activity;Second Activity;Governmental Law;Best Practice;Business Rule;Law of Nature
+Search for a topic;Conduct informal meeting to explain topic;-;yes;-;-
+Search for a topic;Write and submit proposal;-;-;yes;yes
+Search for a topic;Get registered by chair on Koinon;-;-;yes;-
+Search for a topic;Student accept thesis on Koinon;-;-;yes;-
+Search for a topic;Start writing thesis;-;-;yes;yes
+Search for a topic;Conduct regular catch-up meetings;-;yes;-;-
+Search for a topic;Submit thesis on Koinon;yes;-;-;yes
+Search for a topic;Present thesis in Colloquium;yes;-;-;yes
+Conduct informal meeting to explain topic;Write and submit proposal;-;yes;-;-
+Conduct informal meeting to explain topic;Get registered by chair on Koinon;-;yes;-;-
+Conduct informal meeting to explain topic;Student accept thesis on Koinon;-;yes;-;-
+Conduct informal meeting to explain topic;Start writing thesis;-;yes;-;-
+Conduct informal meeting to explain topic;Conduct regular catch-up meetings;-;yes;-;-
+Conduct informal meeting to explain topic;Submit thesis on Koinon;-;yes;-;-
+Conduct informal meeting to explain topic;Present thesis in Colloquium;-;yes;-;-
+Write and submit proposal;Get registered by chair on Koinon;-;-;yes;-
+Write and submit proposal;Student accept thesis on Koinon;-;-;yes;-
+Write and submit proposal;Start writing thesis;-;-;yes;-
+Write and submit proposal;Conduct regular catch-up meetings;-;-;yes;-
+Write and submit proposal;Submit thesis on Koinon;-;-;yes;-
+Write and submit proposal;Present thesis in Colloquium;-;-;yes;-
+Get registered by chair on Koinon;Student accept thesis on Koinon;-;-;yes;-
+Get registered by chair on Koinon;Start writing thesis;-;-;yes;-
+Get registered by chair on Koinon;Conduct regular catch-up meetings;-;yes;-;-
+Get registered by chair on Koinon;Submit thesis on Koinon;-;-;yes;-
+Get registered by chair on Koinon;Present thesis in Colloquium;yes;-;-;-
+Student accept thesis on Koinon;Start writing thesis;-;-;yes;-
+Student accept thesis on Koinon;Conduct regular catch-up meetings;-;yes;-;-
+Student accept thesis on Koinon;Submit thesis on Koinon;-;-;-;yes
+Student accept thesis on Koinon;Present thesis in Colloquium;yes;-;-;-
+Start writing thesis;Conduct regular catch-up meetings;-;yes;-;-
+Start writing thesis;Submit thesis on Koinon;-;-;-;yes
+Start writing thesis;Present thesis in Colloquium;yes;-;-;-
+Conduct regular catch-up meetings;Submit thesis on Koinon;-;-;yes;-
+Conduct regular catch-up meetings;Present thesis in Colloquium;yes;-;-;-
+Submit thesis on Koinon;Present thesis in Colloquium;yes;-;-;-
