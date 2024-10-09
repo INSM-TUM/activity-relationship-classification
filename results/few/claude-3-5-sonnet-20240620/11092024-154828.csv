@@ -1,0 +1,38 @@
+sep=;
+First Activity;Second Activity;Governmental Law;Best Practice;Business Rule;Law of Nature
+Scan ticket;Change number of bags;-;-;The airline requires the ticket to be scanned first to retrieve passenger information before allowing changes to be made, such as changing the number of bags.;The number of bags associated with a ticket can only be changed if the ticket information is known. (Data dependency)
+Scan ticket;Change seat;-;-;The airline requires ticket information to be retrieved before processing change requests, including seat changes.;-
+Scan ticket;Check validity of documents;-;It is more efficient to scan the ticket first to retrieve passenger information before checking document validity. This allows for quicker cancellation if the ticket is invalid.;-;-
+Scan ticket;Weigh baggage;-;It is more efficient to scan the ticket first to access passenger information before weighing the baggage. This allows staff to know how many bags were booked and prepare for potential changes.;-;-
+Scan ticket;Cancel check-in;-;-;-;The check-in process can only be canceled after it has been initiated by scanning the ticket. (Logical dependency)
+Scan ticket;Process payment;-;-;The airline requires ticket information to be retrieved before processing any payments for changes or additional fees.;-
+Scan ticket;Check-in luggage;-;-;The airline requires ticket scanning before luggage check-in to ensure all passenger information is available and any changes are processed before finalizing the check-in.;-
+Scan ticket;Load luggage;-;-;The airline requires that luggage is only loaded after the ticket has been scanned and the check-in process is completed, ensuring that only checked-in luggage is loaded onto the aircraft.;The luggage needs to be physically present at the aircraft to be loaded, which can only happen after the check-in process initiated by scanning the ticket.
+Change number of bags;Change seat;-;-;-;-
+Change number of bags;Check validity of documents;-;Checking document validity after changes ensures all information is up-to-date and reduces the likelihood of wasted effort if documents are invalid.;-;-
+Change number of bags;Weigh baggage;-;-;-;The weight of the baggage can only be determined after the final number of bags is known. (Data dependency)
+Change number of bags;Cancel check-in;-;-;The process description states that after canceling a check-in instance, no other activities should be performed. This implies that cancellation is a final step in the process.;-
+Change number of bags;Process payment;-;-;The airline requires payment for additional bags or changes in the number of bags before proceeding with check-in.;-
+Change number of bags;Check-in luggage;-;-;The airline requires that any changes to the number of bags must be processed before the luggage is checked in, to ensure accurate records and proper handling.;-
+Change number of bags;Load luggage;-;-;-;The number of bags must be known before loading to ensure all bags are accounted for and to calculate the aircraft's load. (Data dependency)
+Change seat;Check validity of documents;-;It's more efficient to check document validity before making changes to the booking, as invalid documents would result in cancellation of the check-in process.;-;-
+Change seat;Weigh baggage;-;-;-;-
+Change seat;Cancel check-in;-;-;-;-
+Change seat;Process payment;-;-;The airline requires payment for seat changes, as stated: 'We offer our customers last-minute changes. We then request an additional fee.';-
+Change seat;Check-in luggage;-;-;The airline wants all changes, including seat changes, to be processed before checking in the luggage to ensure all information is up-to-date and payments are processed.;-
+Change seat;Load luggage;-;-;-;-
+Check validity of documents;Weigh baggage;-;It is more efficient to check the validity of documents before weighing baggage. If documents are invalid, the check-in process can be cancelled without wasting time on weighing.;-;-
+Check validity of documents;Cancel check-in;-;-;The airline requires that check-in be canceled if the documents are found to be invalid during the check.;-
+Check validity of documents;Process payment;-;Checking the validity of documents before processing payment ensures that only eligible passengers proceed to payment, saving time and avoiding potential refund issues.;-;-
+Check validity of documents;Check-in luggage;-;Checking document validity before check-in prevents wasting time on processing invalid tickets or passports.;-;-
+Check validity of documents;Load luggage;-;It's more efficient to check document validity before proceeding with luggage handling to avoid unnecessary work if the passenger can't travel.;-;-
+Weigh baggage;Cancel check-in;-;-;-;-
+Weigh baggage;Process payment;-;-;The airline requires payment to be processed after weighing if the luggage is overweight, as stated: 'After having checked the weight, passengers have to pay a fee if it is overweight in terms of they exceed the weight they booked.';The weight of the baggage must be known before determining if a payment is necessary. (Data dependency)
+Weigh baggage;Check-in luggage;-;-;The airline requires weighing the luggage before check-in to ensure payment processing for overweight luggage and to make sure all other steps are completed before finalizing the check-in.;-
+Weigh baggage;Load luggage;The law protects workers by ensuring that overweight luggage is identified before loading to prevent injuries during manual handling.;-;-;The weight of the luggage must be known before loading to ensure safe handling and proper aircraft weight distribution. (Data dependency)
+Cancel check-in;Process payment;-;-;The process description states that after canceling a check-in instance, no other activities should be performed.;-
+Cancel check-in;Check-in luggage;-;-;The process description states that after canceling a check-in instance, no other activities should be performed.;-
+Cancel check-in;Load luggage;-;-;The process description states that after canceling a check-in instance, no other activities should be performed.;-
+Process payment;Check-in luggage;-;-;The airline requires payment to be processed before luggage can be checked in, ensuring that all fees are paid before finalizing the check-in process.;-
+Process payment;Load luggage;-;-;The airline requires payment to be processed before luggage is loaded, ensuring all fees are collected before the luggage is handled.;-
+Check-in luggage;Load luggage;-;-;The airline requires luggage to be checked in before loading to ensure proper processing and tracking.;Luggage needs to be physically present at the aircraft to be loaded.
