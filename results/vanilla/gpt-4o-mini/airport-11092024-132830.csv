@@ -1,0 +1,38 @@
+sep=;
+First Activity;Second Activity;Governmental Law;Best Practice;Business Rule;Law of Nature
+Scan ticket;Change number of bags;-;We need to have the passenger information from the scanned ticket to handle change requests for the number of bags.;-;-
+Scan ticket;Change seat;-;Handling change requests is more efficient and accurate when passenger information is first obtained through scanning the ticket.;-;-
+Scan ticket;Check validity of documents;-;It is often accepted that checking the validity of documents should occur after scanning the ticket to ensure that the process is efficient and that only valid tickets are processed.;-;-
+Scan ticket;Weigh baggage;-;-;The process requires that the ticket is scanned to retrieve passenger information before weighing the baggage, as it ensures that the correct baggage is associated with the right passenger.;-
+Scan ticket;Cancel check-in;-;The process emphasizes the importance of validating the ticket before proceeding with check-in to avoid wasting time on invalid tickets.;-;-
+Scan ticket;Process payment;-;The airline wants us to only do the check-in if the other things are done to make sure that the payment is processed.;-;-
+Scan ticket;Check-in luggage;-;-;The airline requires that the ticket is scanned before checking in the luggage to ensure that payment is processed and all necessary information is retrieved.;-
+Scan ticket;Load luggage;-;The airline wants us to only do the check-in if the other things are done to make sure that the payment is processed.;-;-
+Change number of bags;Change seat;-;Handling change requests for bags and seats is a common procedure accepted by staff to ensure passenger satisfaction.;-;-
+Change number of bags;Check validity of documents;-;It is generally accepted to check the validity of documents after processing changes to the number of bags to ensure that all information is accurate before proceeding.;-;-
+Change number of bags;Weigh baggage;-;Weighing baggage is important to ensure that the luggage is not over 23 kg, and changing the number of bags is a common practice that may require weighing to ensure compliance with weight limits.;-;-
+Change number of bags;Cancel check-in;-;It is a common procedure to cancel the check-in process if there are issues with the ticket or documents, ensuring efficiency and proper handling of passenger requests.;-;-
+Change number of bags;Process payment;-;-;The organization has the discretion to require payment processing before finalizing changes to the number of bags.;-
+Change number of bags;Check-in luggage;-;It is a procedure usually accepted by the organization's staff to ensure that the ticket is associated with all bags before checking in luggage.;-;-
+Change number of bags;Load luggage;-;Noting the number of bags in the system before loading luggage is a procedure accepted by the organization's staff to ensure proper handling and tracking of luggage.;-;-
+Change seat;Check validity of documents;-;It is often the case that passengers are not happy with their booked seats, so checking the validity of documents after changing the seat is a procedure accepted by the staff to ensure a smooth process.;-;-
+Change seat;Weigh baggage;-;Weighing baggage is a common practice to ensure safety and compliance with weight limits, although it is not legally mandated.;-;-
+Change seat;Cancel check-in;-;It is often the case that passengers are not happy with their booked seats, and handling change requests is a common practice to improve customer satisfaction.;-;-
+Change seat;Process payment;-;-;Passengers have to pay for changes made to their bookings, which is a rule set by the airline.;-
+Change seat;Check-in luggage;-;Handling change requests before check-in luggage is a procedure accepted by the staff to ensure all passenger information is accurate before processing luggage.;-;-
+Change seat;Load luggage;-;-;-;-
+Check validity of documents;Weigh baggage;-;-;-;-
+Check validity of documents;Cancel check-in;-;Validating documents before proceeding with check-in is a procedure accepted as superior to alternatives to avoid wasting time on invalid tickets.;-;-
+Check validity of documents;Process payment;-;Validating documents before processing payment is a common procedure to ensure that the transaction is legitimate and to avoid potential issues.;-;-
+Check validity of documents;Check-in luggage;The airline is required to ensure that all necessary documents are validated before allowing passengers to check in their luggage, as per regulations governing air travel.;-;-;-
+Check validity of documents;Load luggage;Loading luggage without checking the validity of documents could lead to security and regulatory issues, as it is required to ensure that only authorized passengers' luggage is loaded onto the aircraft.;-;-;-
+Weigh baggage;Cancel check-in;-;-;-;-
+Weigh baggage;Process payment;-;The airline wants us to only do the check-in if the other things are done to make sure that the payment is processed.;-;-
+Weigh baggage;Check-in luggage;-;Weighing baggage before check-in is a procedure accepted by the organization's staff to ensure compliance with weight limits and to avoid issues with overweight luggage.;-;-
+Weigh baggage;Load luggage;Weighing is important to ensure that the luggage is not over 23 kg, which is a safety regulation to protect staff handling the luggage.;-;-;-
+Cancel check-in;Process payment;-;The process of canceling check-in is typically done to ensure that all necessary validations are completed before proceeding with payment, which is a common practice in the industry.;-;-
+Cancel check-in;Check-in luggage;-;The process of canceling check-in before checking in luggage is a commonly accepted procedure to ensure that all necessary steps are completed correctly.;-;-
+Cancel check-in;Load luggage;-;Loading luggage should only occur after check-in is completed to ensure proper handling and tracking of luggage.;-;-
+Process payment;Check-in luggage;-;The airline wants us to only do the check-in if the other things are done to make sure that the payment is processed.;-;-
+Process payment;Load luggage;The airline is required to ensure that all payments are processed before loading luggage to comply with safety and regulatory standards.;-;-;-
+Check-in luggage;Load luggage;The process of loading luggage is regulated by safety laws that require checking the weight of luggage to ensure it is within safe limits for manual handling.;-;-;-

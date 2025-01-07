@@ -1,0 +1,38 @@
+sep=;
+First Activity;Second Activity;Governmental Law;Best Practice;Business Rule;Law of Nature
+Scan ticket;Change number of bags;-;-;The process description states that the number of bags can be changed after the ticket is scanned, as the ticket information is needed to associate the change to the passenger.;-
+Scan ticket;Change seat;-;-;The process description states that the passenger information is needed to handle change requests, and this information is obtained by scanning the ticket.;-
+Scan ticket;Check validity of documents;-;The process description states that the agent checks the validity of the documents after scanning the ticket to avoid wasting time on invalid tickets. This is a best practice as it is a more efficient way to handle the check-in process.;-;-
+Scan ticket;Weigh baggage;-;-;The process description states that the weight of the luggage is checked to ensure that it is within safe limits for manual handling. This is a business rule that can be changed or discarded at the discretion of the stakeholders of the process.;-
+Scan ticket;Cancel check-in;-;-;The process description states that the airline wants to ensure that the payment is processed before checking in the luggage, which is a business rule that can be changed at the airline's discretion.;-
+Scan ticket;Process payment;-;-;The airline has decided to only process payment after the ticket has been scanned and validated, as this ensures that the payment is for a valid ticket.;-
+Scan ticket;Check-in luggage;-;-;The airline has a rule that luggage can only be checked in after the ticket has been scanned and the passenger information has been retrieved.;-
+Scan ticket;Load luggage;-;-;-;Data dependency: The luggage cannot be loaded without knowing the passenger's information, which is obtained by scanning the ticket.
+Change number of bags;Change seat;-;The process description mentions that "Also, my other colleagues are doing it like that." This indicates that the order of these activities is a best practice followed by the staff, but not a strict rule.;-;-
+Change number of bags;Check validity of documents;-;-;The process description states that the airline wants to ensure that the payment is processed before checking in the luggage. This is a business rule that can be changed at the discretion of the airline.;-
+Change number of bags;Weigh baggage;-;The process description states that the weight of the luggage is checked to ensure that each piece is within safe limits for manual handling. This is a best practice as it ensures the safety of the baggage handlers and prevents damage to the luggage.;-;-
+Change number of bags;Cancel check-in;-;-;The process description states that after canceling a check-in instance, you should not perform any other activities. This is a rule that can be changed by the stakeholders of the process.;-
+Change number of bags;Process payment;-;-;The airline requires the payment to be processed before checking in the luggage, which is a business rule that can be changed at their discretion.;-
+Change number of bags;Check-in luggage;-;-;The airline wants to ensure that the payment is processed before checking in the luggage, which is a business rule that can be changed at their discretion.;-
+Change number of bags;Load luggage;-;-;The process description states that the number of bags needs to be noted in the system before the luggage is loaded. This is a rule that can be changed by the organization at their discretion.;-
+Change seat;Check validity of documents;-;The process description states that the activity of checking the validity of documents is done after changing the seat, as it is a best practice to ensure that the ticket and passport are valid before proceeding with the check-in process.;-;-
+Change seat;Weigh baggage;-;-;-;-
+Change seat;Cancel check-in;-;-;The process description states that after canceling a check-in instance, you should not perform any other activities. This is a rule that can be changed by the stakeholders of the process.;-
+Change seat;Process payment;-;-;The airline requires payment to be processed before check-in, which includes luggage check-in, to ensure that the payment is processed before the service is provided.;-
+Change seat;Check-in luggage;-;-;The airline wants to ensure that the payment is processed before the luggage is checked in.;-
+Change seat;Load luggage;-;-;-;-
+Check validity of documents;Weigh baggage;-;The process description states that weighing is important to ensure that the luggage is not over 23 kg, which is a best practice to ensure safety and compliance with regulations.;-;-
+Check validity of documents;Cancel check-in;-;-;The process description states that if the ticket or passport is not valid, the check-in process can be canceled. This is a rule that can be changed by the airline at their discretion.;-
+Check validity of documents;Process payment;-;-;The airline requires that the payment is processed before the check-in process can be completed, which includes checking in the luggage.;-
+Check validity of documents;Check-in luggage;-;-;The airline has a rule that luggage can only be checked in after the ticket has been scanned and the passenger's information has been retrieved. This ensures that the payment is processed and the system is aware of the luggage.;-
+Check validity of documents;Load luggage;-;-;The airline has a rule that luggage can only be loaded after the ticket has been scanned and the passenger's information has been retrieved. This ensures that the payment is processed and the system is aware of the luggage.;-
+Weigh baggage;Cancel check-in;-;-;-;-
+Weigh baggage;Process payment;-;-;The airline has decided to process payment only after the baggage has been weighed to ensure that the payment covers any potential overweight fees.;-
+Weigh baggage;Check-in luggage;-;-;The airline wants to ensure that the payment for overweight luggage is processed before the luggage is checked in.;-
+Weigh baggage;Load luggage;-;-;The process description states that the luggage is loaded after it is weighed, and that the weight is checked to ensure that the luggage is not over 23 kg. This is a business rule that can be changed at the discretion of the stakeholders.;-
+Cancel check-in;Process payment;-;-;The airline wants to ensure that the payment is processed before check-in is completed, which is a business rule that can be changed at their discretion.;-
+Cancel check-in;Check-in luggage;-;-;The airline wants to ensure that the payment is processed before checking in the luggage, which is a business rule that can be changed at their discretion.;-
+Cancel check-in;Load luggage;-;-;-;-
+Process payment;Check-in luggage;-;-;The airline has a rule that the payment must be processed before the luggage can be checked in.;-
+Process payment;Load luggage;-;-;The airline requires payment to be processed before luggage is loaded, as this is a business rule that can be changed at their discretion.;-
+Check-in luggage;Load luggage;-;-;-;Resource Dependency: You cannot load luggage into the aircraft without first checking it in.

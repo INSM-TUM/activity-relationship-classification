@@ -1,0 +1,55 @@
+[Interviewer] So, could you please walk me through the overall process of thesis registration and submission at your university? 
+
+[Speaker] So, as you know, we have to do the thesis after our final exam, and for that I chose my supervisor that I was previously working for as a working student. I asked him about a hot topic, what is they currently working on, and if they has some topics in mind. they provided many of them, one of them was the alignment with EU taxonomy and business process management concepts, and I found that one of the most interesting since sustainability is very important right now, I said what a nice initiative, and since nobody has done this research, I said, okay, let me be the first one. So, then I proceeded with, you know, reading stuff, getting to know what's going on, and then as a part of the chair's application, you have to write an exposé. It took me, I guess, one month to write the exposé, and afterwards, I presented to my supervisor and the professor. Should I say names? 
+
+[Interviewer] No, let's keep it anonymous. 
+
+[Speaker] Okay, then upon presenting the exposé, then there's a discussion, maybe addressing some risks, addressing some outcomes, and after that, they should register you for your thesis. However, with my thesis, there were problems, and I couldn't be registered in such a prompt time, and there was a big delay due to a problem with the university's system. Luckily, that got resolved, but the advice was that I can still start writing my thesis, even though I am not registered, so that wouldn't affect anything. So, the only thing is that you must be registered for your thesis in order to upload it or submit it, so that was the only concern, but of course, later on the problem was resolved, I got registered for my thesis. For writing your thesis, you have four months. Currently, I have one left. I would say that first, in the exposé, you write which methodologies will you use, so that afterwards you use it for your thesis. I did literature research a lot, since my thesis has to do with taxonomy and regulations, and then I proceeded with writing introduction, background. It is very convenient, because you have all of the support from your supervisor, and if you get stuck somewhere, or if you have questions, they always have an answer, or if they don't have a clear answer, they could always advise you to appropriate literature, so you can kind of also find the answer on your own, but you get the right direction. Also, while you actually don't need to have very regular meetings with your supervisor, but I chose to have them every two weeks, and people usually prefer to have them at least once a week before submitting the thesis, but that is, of course, your choice. I forgot to mention that the exposé serves as a contract between you and your supervisor, and your professor, that you actually follow what you've written in the exposé, and that you will not deviate that much. Obviously
+
+[Interviewer] Perfect, let us just to go through the steps maybe a bit now, so you start first with the topic selection. 
+
+[Speaker] Yes. 
+
+[Interviewer] What role does the supervisor play in refining or approving the topic? Was your supervisor very interactive in the process of choosing the topic, or were you more or less the one deciding? 
+
+[Speaker] I would say the decision was fully mine, so I picked the topic, but what my supervisor did was that they offered many topics that they can assist me on, in which they had specialized knowledge in. Particularly for my supervisor the topic was sustainability with business process management, and so they offered the topic, let me do a little bit of research, and then tell them which topic would suit me most. So they gave me freedom to explore. Also, they said that I can also find something on my own, and then also discuss it with them, so they can check or see if they're eligible or able to assist me. 
+
+[Interviewer] And are you aware of any regulation that you have to adhere to during the topic selection phase or was it more flexible? 
+
+[Speaker] It was flexible
+
+[Interviewer] Okay, and then after you choose a topic, you have the proposal or exposé phase. 
+
+[Speaker] Yes. 
+
+[Interviewer] So for the proposal, you mentioned that you do not actually have to write a proposal, it was something set by the chair, or was it something mandated by the university in general?
+
+[Speaker] I guess it is not mandated because I have a few friends that did their theses with other chairs and did not need to write an exposé before registering their thesis. 
+
+[Interviewer] Okay, so it's common to do this across faculties and chairs at least but not absolutely required. 
+
+[Speaker] Yes. 
+
+[Interviewer] And did you have any deadlines or time constraints for the proposal or not?
+
+[Speaker] No, there was not a set deadline, but I will explain the process. So I had an intermediate meeting with my supervisor on how am I doing on the exposé, and to ask them if something is not clear, or if I'm stuck somewhere, and then we had a meeting with my professor plus my supervisor, and by this date, it was expected that I have my exposé ready. So I could say that it was not a very strict date, because it's a meeting. 
+
+[Interviewer] Great, so once you're registered, what main activities did you have during the thesis research and writing phase?
+
+[Speaker] So, for my topic, first I had to delve into the taxonomy, so all of the laws and regulations that determine how companies should do sustainability reporting. So I wasn't dealing a lot with research papers, I was dealing with regulations, and trying to get the entities and the constraints for my metamodel. So I had to take everything from the taxonomy. Then I proceeded with a conceptualization of BPM man practices, ontologies, metamodels that represent business activities through business process management practices, and then I tried also to, let's say, reuse concepts from many papers, so that I can get my view for BPMN, or BPM actually, BPM, my mistake. And having those two models, now I'm trying to see where they overlap, and I guess I will try to make a third model, I still don't know how, but I guess now I want to actually do the alignment, discover where do they differ. Until now, my most valid finding is that they differ in waste management, so business process management from the side of businesses doesn't care about, let's say, waste, on the other hand, eutaxonomy cares about waste, so that I can say that it's a very big difference.
+
+[Interviewer] So, while you're doing the research and writing, does your chair have any established or specific procedures for this phase, or not? 
+
+[Speaker] It's common that all supervisors have a regular weekly or bi-weekly meetings, but it's not a university rule, it's just what the supervisors usually do so that you are at pace for your thesis. 
+
+[Interviewer] Okay, so let's say that you now finished your thesis writing, and you want to submit the thesis, what do you have to do exactly? 
+
+[Speaker] So there's this platform where they register us for our theses, you have to go in the platform, and you simply submit your thesis digitally. 
+
+[Interviewer] Okay, and do you know how it is evaluated?
+
+[Speaker] As far as I know, I believe that my supervisor will grade my thesis. 
+
+[Interviewer] Okay, but to submit the thesis, you must be registered for it, correct? 
+
+[Speaker] Yes, correct. So you can write the thesis without being registered, but in order to submit it, you must be registered. 

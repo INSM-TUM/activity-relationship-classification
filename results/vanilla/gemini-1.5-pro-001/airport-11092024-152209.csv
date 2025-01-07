@@ -1,0 +1,38 @@
+sep=;
+First Activity;Second Activity;Governmental Law;Best Practice;Business Rule;Law of Nature
+Scan ticket;Change number of bags;-;-;-;Data dependency: Need passenger information from ticket scan to associate changes with the correct passenger.
+Scan ticket;Change seat;-;-;-;Data dependency: Need passenger information from ticket scan to associate changes with the correct passenger.
+Scan ticket;Check validity of documents;-;-;-;Data dependency: You first need to retrieve the passenger information, including ticket information, by scanning the ticket before you can check the validity of their documents.
+Scan ticket;Weigh baggage;-;-;-;-
+Scan ticket;Cancel check-in;-;-;-;Data dependency: You need the ticket information from scanning the ticket to know whether to cancel the check-in or not.
+Scan ticket;Process payment;-;-;-;Data dependency: Need to scan the ticket to retrieve passenger information, which may include whether additional payment is required for excess baggage, before processing the payment.
+Scan ticket;Check-in luggage;-;-;The airline mandates that check-in should only happen after other steps like payment are completed.;-
+Scan ticket;Load luggage;-;-;-;Data dependency: Luggage cannot be loaded without the information from the scanned ticket, which is needed to associate the luggage with the correct passenger and flight.
+Change number of bags;Change seat;-;-;-;-
+Change number of bags;Check validity of documents;-;-;-;-
+Change number of bags;Weigh baggage;-;-;-;-
+Change number of bags;Cancel check-in;-;-;-;-
+Change number of bags;Process payment;-;-;The airline requires payment to be processed before check-in to ensure they receive payment for any changes, including extra bags.;-
+Change number of bags;Check-in luggage;-;-;The airline wants to ensure payment for extra bags is processed before check-in, indicating an internal policy rather than an external mandate.;-
+Change number of bags;Load luggage;-;-;-;-
+Change seat;Check validity of documents;-;-;-;-
+Change seat;Weigh baggage;-;-;-;-
+Change seat;Cancel check-in;-;-;-;-
+Change seat;Process payment;-;-;The airline requires payment processing to occur before check-in to ensure fees for changes like seat changes are collected.;-
+Change seat;Check-in luggage;-;-;The airline wants to ensure the payment for any changes, such as seat changes, is processed before the luggage is checked in.;-
+Change seat;Load luggage;-;-;-;-
+Check validity of documents;Weigh baggage;-;-;-;-
+Check validity of documents;Cancel check-in;-;-;-;Data dependency: Cannot decide to cancel without knowing if the documents are valid.
+Check validity of documents;Process payment;-;-;-;-
+Check validity of documents;Check-in luggage;-;-;The airline has a business rule to ensure passengers have completed other steps like document validation and potential overweight payments before luggage check-in to ensure a smoother final check-in process.;-
+Check validity of documents;Load luggage;-;-;-;-
+Weigh baggage;Cancel check-in;-;-;-;-
+Weigh baggage;Process payment;-;-;The airline wants payments to be processed before check-in to ensure revenue collection for excess weight.;-
+Weigh baggage;Check-in luggage;-;-;The airline wants to ensure the payment is processed before check-in, indicating an internal rule that can be changed at their discretion.;-
+Weigh baggage;Load luggage;-;-;-;Resource dependency: Luggage needs to be weighed before it can be loaded onto the aircraft.
+Cancel check-in;Process payment;-;-;-;Data dependency: Cannot process a payment for a cancelled check-in as the data for the check-in would be unavailable or marked as cancelled.
+Cancel check-in;Check-in luggage;-;-;-;Data dependency: Cancelling check-in invalidates the check-in data, making it illogical to proceed with checking in luggage without valid data.
+Cancel check-in;Load luggage;-;-;-;If the check-in is canceled, the luggage should not be loaded, as it implies the passenger is no longer traveling. This is a logical dependency enforced by the process's inherent constraints.
+Process payment;Check-in luggage;-;-;The airline has mandated that check-in should only happen after payment processing to ensure financial transactions are completed.;-
+Process payment;Load luggage;-;-;-;-
+Check-in luggage;Load luggage;-;-;-;Data dependency: Luggage cannot be loaded before being checked in and associated with a passenger and flight.

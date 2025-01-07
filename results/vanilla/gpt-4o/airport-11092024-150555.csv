@@ -1,0 +1,38 @@
+sep=;
+First Activity;Second Activity;Governmental Law;Best Practice;Business Rule;Law of Nature
+Scan ticket;Change number of bags;-;-;-;The ticket must be scanned to retrieve passenger information before any changes can be made to the number of bags.
+Scan ticket;Change seat;-;-;The organization requires the ticket to be scanned to retrieve passenger information before any changes can be made to the seat.;-
+Scan ticket;Check validity of documents;-;It is important to check the validity of documents after scanning the ticket to ensure that the process can be canceled early if the documents are not valid, saving time and effort.;-;-
+Scan ticket;Weigh baggage;-;-;The airline wants to ensure that the payment is processed before checking in the luggage.;-
+Scan ticket;Cancel check-in;-;-;-;You cannot cancel a check-in without first having a ticket to check-in.
+Scan ticket;Process payment;-;-;The airline wants to ensure that the payment is processed only after the ticket information is retrieved and verified.;-
+Scan ticket;Check-in luggage;-;-;The airline wants us to only do the check-in if the other things are done to make sure that the payment is processed.;By reading the barcode of the ticket, we can request all the information that is stored for the specific passenger.
+Scan ticket;Load luggage;-;-;-;You cannot load the luggage without first scanning the ticket to associate the luggage with the passenger and ensure all necessary information is available.
+Change number of bags;Change seat;-;-;-;-
+Change number of bags;Check validity of documents;-;It is a common practice to validate documents after making changes to ensure that the ticket and passenger information are still valid before proceeding further.;-;-
+Change number of bags;Weigh baggage;-;-;-;You need to know the final number of bags before weighing them to ensure accurate weight measurement.
+Change number of bags;Cancel check-in;-;It is important to validate documents and cancel the check-in if necessary before making any changes to avoid unnecessary work.;-;-
+Change number of bags;Process payment;-;-;The airline requires payment for changes to the number of bags to cover additional costs and ensure proper load planning.;-
+Change number of bags;Check-in luggage;-;-;The airline wants to ensure that all changes and associated payments are processed before the luggage is checked in.;-
+Change number of bags;Load luggage;-;-;The airline wants to ensure that all changes and associated payments are processed before the luggage is loaded.;-
+Change seat;Check validity of documents;-;It is a common practice to check the validity of documents after making changes to ensure that the process can be canceled if the documents are invalid, saving time and effort.;-;-
+Change seat;Weigh baggage;-;-;-;-
+Change seat;Cancel check-in;-;-;-;-
+Change seat;Process payment;-;-;The airline requires passengers to pay a fee for last-minute changes, which includes changing seats.;-
+Change seat;Check-in luggage;-;-;The airline wants to ensure that all changes and payments are processed before checking in the luggage.;-
+Change seat;Load luggage;-;-;-;-
+Check validity of documents;Weigh baggage;-;It is a common practice to check the validity of documents before proceeding with other activities to avoid wasting time on invalid tickets or passports.;-;-
+Check validity of documents;Cancel check-in;-;It is important to check the validity of documents before proceeding with the check-in process to avoid wasting time on invalid tickets or passports.;-;-
+Check validity of documents;Process payment;-;Checking the validity of documents before processing payment ensures that invalid tickets or passports do not waste time and resources.;-;-
+Check validity of documents;Check-in luggage;-;It is important to check the validity of documents before checking in luggage to avoid wasting time on invalid tickets or passports.;-;-
+Check validity of documents;Load luggage;-;It is important to check the validity of documents before loading luggage to ensure that the process is not wasted on invalid tickets or passports.;-;-
+Weigh baggage;Cancel check-in;-;Important is that after canceling a check-in instance, you should not perform any other activities. Also, my other colleagues are doing it like that.;-;-
+Weigh baggage;Process payment;The law protects workers from handling overweight luggage, so the baggage must be weighed to determine if an additional fee is required for overweight items.;-;-;-
+Weigh baggage;Check-in luggage;The law protects workers from handling overweight luggage, so baggage must be weighed to ensure it is within safe limits before it can be checked in.;-;-;-
+Weigh baggage;Load luggage;The law protects workers from handling overweight luggage, ensuring safety regulations are met.;-;-;-
+Cancel check-in;Process payment;-;It is important to cancel the check-in process before processing any payment to avoid unnecessary transactions and ensure that no further activities are performed after cancellation.;-;-
+Cancel check-in;Check-in luggage;-;It is important to cancel the check-in process if the ticket or passport is not valid to avoid wasting time and resources.;-;-
+Cancel check-in;Load luggage;-;Important is that after canceling a check-in instance, you should not perform any other activities. Also, my other colleagues are doing it like that.;-;-
+Process payment;Check-in luggage;-;-;The airline wants to ensure that the payment is processed before checking in the luggage.;-
+Process payment;Load luggage;-;-;The airline wants to ensure that the payment is processed before the luggage is loaded onto the aircraft.;-
+Check-in luggage;Load luggage;-;-;The airline wants to ensure that all necessary steps, including payment processing and tagging, are completed before the luggage is loaded onto the aircraft.;-

@@ -1,0 +1,38 @@
+sep=;
+First Activity;Second Activity;Governmental Law;Best Practice;Business Rule;Law of Nature
+Scan ticket;Change number of bags;-;-;Changes to the number of bags are only allowed after the ticket has been scanned to retrieve the passenger's information and prevent inconsistencies in the system.;-
+Scan ticket;Change seat;-;-;Changes to the seat assignment are only allowed after the passenger's ticket has been scanned, retrieving their information and ensuring they have a valid ticket.;You cannot change the seat associated with a ticket if you do not have the information on the ticket. (Data dependency)
+Scan ticket;Check validity of documents;-;It is more efficient to check the ticket first and retrieve passenger information. Without a valid ticket, it is not necessary to check the documents.;-;-
+Scan ticket;Weigh baggage;-;It is more efficient to scan the ticket and potentially cancel the check-in process early if the ticket is invalid, preventing unnecessary weighing.;-;-
+Scan ticket;Cancel check-in;-;-;Scanning the ticket allows the retrieval of passenger information, which is necessary to proceed with or cancel the check-in process. The decision to cancel is based on the validity of the ticket and/or passport.;-
+Scan ticket;Process payment;-;-;The airline wants to ensure the payment is processed before check-in, which can only be determined after scanning the ticket.;-
+Scan ticket;Check-in luggage;-;-;The airline wants to ensure the payment is processed before check-in.;-
+Scan ticket;Load luggage;-;-;The airline wants to ensure the payment is processed before luggage is loaded.;Luggage needs to be physically next to the aircraft to load it.
+Change number of bags;Change seat;-;-;-;-
+Change number of bags;Check validity of documents;-;-;-;-
+Change number of bags;Weigh baggage;-;It is more efficient to weigh the luggage after the number of bags has been finalized, as changing the number of bags may require re-weighing.;-;-
+Change number of bags;Cancel check-in;-;-;-;Check-in cannot be canceled if it has not been started. Changing the number of bags is done before check-in. (Logical Dependency)
+Change number of bags;Process payment;-;-;Changing the number of bags might lead to extra fees that need to be paid.;-
+Change number of bags;Check-in luggage;-;-;The airline wants to ensure the payment for extra bags is processed before check-in.;-
+Change number of bags;Load luggage;-;-;The airline wants to ensure that all changes are reflected in the system and potentially paid for before the luggage is loaded.;-
+Change seat;Check validity of documents;-;-;-;-
+Change seat;Weigh baggage;-;-;-;-
+Change seat;Cancel check-in;-;-;-;-
+Change seat;Process payment;-;-;The airline requires payment for seat changes to cover additional costs. The payment must be processed before the check-in can be completed.;-
+Change seat;Check-in luggage;-;-;The airline wants to ensure payment for potential seat change fees before check-in luggage.;-
+Change seat;Load luggage;-;-;-;-
+Check validity of documents;Weigh baggage;-;It is more efficient to check the documents first and potentially cancel the process, as it prevents unnecessary weighing of luggage if the documents are invalid.;-;-
+Check validity of documents;Cancel check-in;-;-;The process description states that if the ticket or passport is not valid, the check-in process is canceled. This rule is in place to prevent wasting time on invalid check-ins and is a decision made by the airline.;You cannot cancel the check-in without first checking the validity of the documents and making the decision to cancel. (Logical dependency)
+Check validity of documents;Process payment;-;-;-;You cannot process the payment for an invalid booking. (Data dependency)
+Check validity of documents;Check-in luggage;-;It is more efficient to check the validity of the documents before checking in the luggage to avoid unnecessary steps if the documents are not valid.;-;-
+Check validity of documents;Load luggage;-;-;Only luggage that is associated with valid documents should be loaded onto the aircraft.;-
+Weigh baggage;Cancel check-in;-;-;-;-
+Weigh baggage;Process payment;-;-;Payment is only processed if the baggage is overweight, which is determined by weighing it.;-
+Weigh baggage;Check-in luggage;-;-;The airline wants to ensure the payment is processed before check-in.;-
+Weigh baggage;Load luggage;-;-;The weight of the luggage needs to be known before it can be loaded onto the aircraft to ensure the safety of the staff and that the weight distribution on the aircraft is correct.;The luggage needs to be physically next to the aircraft to load it. (Resource dependency)
+Cancel check-in;Process payment;-;-;Payment should not be processed if the check-in is canceled.;You cannot process a payment for a canceled check-in. (Logical dependency)
+Cancel check-in;Check-in luggage;-;-;Important is that after canceling a checkin instance, you should not perform any other activities.;This is a logical dependency, as you cannot perform an activity on a cancelled instance.
+Cancel check-in;Load luggage;-;-;Loading luggage that is not meant to be transported causes unnecessary costs and delays. It is an internal rule to prevent loading luggage associated with a canceled check-in.;-
+Process payment;Check-in luggage;-;-;The airline wants to ensure the payment is processed before check-in to avoid complexities with canceling checked-in luggage.;-
+Process payment;Load luggage;-;-;-;-
+Check-in luggage;Load luggage;-;-;The airline wants the luggage to be checked in before it is loaded to ensure payment is processed.;Luggage needs to be physically next to the aircraft to load it.
