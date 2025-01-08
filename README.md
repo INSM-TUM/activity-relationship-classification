@@ -15,3 +15,4 @@ In this repository you find
 * **Results** 
 * **Python Scripts**
 
+The core components of the setup involve LLM access via the respective APIs, Python for interaction, and the RAG pipeline for context retrieval. Python 3.12 was chosen as the primary programming language due to the availability of an extensive ecosystem of libraries allowing interactions with LLMs. Specifically, the \textit{openai} package was used for OpenAI's GPT, the _anthropic_ package for Antrophic's Claude, and the Vertex AI SDK for Python\footnote{For configuration, we followed the guide provided in: https://cloud.google.com/python/docs/reference/aiplatform/latest} for Google's Gemini. To ensure storage of sensitive API keys and to safely upload the project to GitHub, the \textit{dotenv} package was utilized to load environment variables. 
