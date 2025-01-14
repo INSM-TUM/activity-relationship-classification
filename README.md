@@ -58,7 +58,7 @@ python main.py --folder_name <folder_name> [--model <model>] [--method <method>]
 - `--model` (string, optional): The model to use for classification. Defaults to `claude-3-5-haiku-latest`. Check `constants.py` for supported models.
 - `--method` (string, optional): The method to use for classification. Defaults to `vanilla`. Check `constants.py` for supported methods.
 - `--rag` (optional): Whether to use RAG for context retrieval. Defaults to `True`. Use `--no-rag` to disable.
-- `--path` (string, optional): The path to the folder containing input files. Defaults to the same directory as the Python file.
+- `--path` (string, optional): The path to the parent folder of the folder_name containing the input files. Defaults to the same directory as the Python file.
 - `--vertexai_project_name` (string, optional): The Vertex AI project name.
 - `--vertexai_location` (string, optional): The Vertex AI location.
 
