@@ -4,25 +4,95 @@ This repository contains the source code and result files for the experiments de
 ## Abstract
 Business Process Redesign (BPR) is essential for adapting processes to technological advancements, legislative changes, and sustainability standards. Despite its significance, BPR faces challenges due to limited automated support, particularly in classifying activity relationships that govern execution order. This comparative analysis investigates the use of Large Language Models (LLMs) to automate the extraction of explanatory rationales—laws, business rules, and best practices—from textual data, addressing the traditionally manual and resource-intensive retrieval process. By comparing four LLM prompting techniques (Vanilla, Few-Shot, Chain-of-Thought, and their combination), we evaluate their effectiveness in classifying relationships based on contextual origins. Our findings show that Few-Shot and Chain-of-Thought approaches significantly enhance precision, recall, and F1 scores. Furthermore, smaller, cost-effective LLMs, such as GPT-4o mini, achieved performance comparable to larger models, making advanced classification accessible to organizations with limited resources.
 
+## Overview
 
-## Structure of the Repository
-In this repository you find
-* **Testing Use Case:** We developed the experimental setup based on the testing use case of the airport check-in process.
-  * Process Descriptions
-  * Ground Truth
-  * Prompts
-* **Thesis Process:** This use case scenario was used for the final experiments
-  * Interview Trasncripts
-  * Process Descriptions
-  * Ground Truth
-  * Prompts
-* **Results** 
-* **Python Scripts**
+The Activity Relationship Classifier is a Python-based tool designed to classify the relationships between pairs of activities in a business process. The classification is based on predefined categories and can also identify dependencies due to the law of nature.
 
+## Features
 
-## Technical Details
-The core components of the setup involve LLM access via the respective APIs, Python for interaction, and the RAG pipeline for context retrieval. Python 3.12 was chosen as the primary programming language due to the availability of an extensive ecosystem of libraries allowing interactions with LLMs. Specifically, the \textit{openai} package was used for OpenAI's GPT, the _anthropic_ package for Antrophic's Claude, and the Vertex AI SDK for Python\footnote{For configuration, we followed the guide provided in: https://cloud.google.com/python/docs/reference/aiplatform/latest} for Google's Gemini. To ensure storage of sensitive API keys and to safely upload the project to GitHub, the \textit{dotenv} package was utilized to load environment variables. 
+- Classifies relationships into contextual origin categories (Governmental Law, Best Practice, Business Rule), and classifies Laws of Nature.
+- Supports multiple models for classification, including OpenAI, Anthropic, and Vertex AI models.
+- Utilizes different methods for classification: vanilla prompting, chain-of-thought, few shot learning, and a mix of few shot learning with chain-of-thought.
+- Optionally uses Retrieval-Augmented Generation (RAG) for context retrieval.
 
-## How to Run
-*Prerequisites: Python 3* <br>
-After cloning the repository, install the necessary dependencies from the `requirements.txt` file. The easiest way to do this (with pip as package manager) is to run `pip install -r ./requirements.txt` from console. We recommend using a virtual environment to make sure all dependencies are on the proper version.
+## Requirements
+
+- Python 3.8 or higher
+- Required Python packages (listed in `requirements.txt`)
+
+## Installation
+
+1. Clone the repository:
+    ```sh
+    git clone <repository-url>
+    cd <repository-directory>
+    ```
+
+2. Install the required packages:
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+3. Set up environment variables by creating a `.env` file in the project root directory and adding your API keys:
+    ```env
+    OPENAI_API_KEY=<your_openai_api_key>
+    ANTHROPIC_API_KEY=<your_anthropic_api_key>
+    REPLICATE_API_TOKEN=<your_replicate_api_token> # For RAG embeddings but can also be done locally
+    ```
+
+4. Setup Authentication for VertexAI by following [this guide](https://cloud.google.com/vertex-ai/generative-ai/docs/start/quickstarts/quickstart-multimodal#python).
+
+## Usage
+
+### Command-Line Interface
+
+Run the classifier using the command-line interface:
+
+```sh
+python main.py --folder_name <folder_name> [--model <model>] [--method <method>] [--rag | --no-rag] [--path <path>]
+```
+
+#### Arguments
+
+- `--folder_name` (string, required): The folder name containing the input files (`desc.txt`, `activities.txt`, `truth.txt`, `examples.txt`), results folder will be created in this folder. The folder is best named according to the process name.
+- `--model` (string, optional): The model to use for classification. Defaults to `claude-3-5-haiku-latest`. Check `constants.py` for supported models.
+- `--method` (string, optional): The method to use for classification. Defaults to `vanilla`. Check `constants.py` for supported methods.
+- `--rag` (optional): Whether to use RAG for context retrieval. Defaults to `True`. Use `--no-rag` to disable.
+- `--path` (string, optional): The path to the folder containing input files. Defaults to the same directory as the Python file.
+- `--vertexai_project_name` (string, optional): The Vertex AI project name.
+- `--vertexai_location` (string, optional): The Vertex AI location.
+
+### Example
+
+```sh
+python main.py --folder_name example_folder --model gpt-4o --method few-cot --no-rag
+```
+
+## Input Files
+
+The input folder **must** contain the following files, examples are provided in the `thesis_process` directory in the repository:
+
+- `desc.txt`: A text file containing the process description.
+- `activities.txt`: A text file containing the list of activities, one per line.
+- `truth.csv`: A CSV file containing the ground truth for evaluation. Check the `thesis_process` folder for the structure.
+- `examples.txt`: (Only necessary for methods with few shot learning) A text file containing 3-5 examples of correct labelling for few shot learning, the answer to the prompts should be JSON formatted for `few` and in natural language for `few-cot`.
+
+## Output
+
+The results will be saved in a CSV file in the `results` directory, located inside the path given in the folder_name flag, within a directory corresponding to the model name. The result file name will include the process name and the current timestamp.
+
+## Code Structure
+
+- `main.py`: Main script to run the classifier.
+- `constants.py`: Contains constants used in the project.
+- `rag.py`: Contains the RAG implementation (if applicable).
+- `stats.py`: Contains functions for calculating evaluation metrics.
+- `thesis_process/`: Contains example files for the thesis registration and submission process.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+## Contact
+
+For any questions or issues, please contact `touqanzahi@gmail.com`.

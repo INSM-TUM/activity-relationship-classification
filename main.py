@@ -1,5 +1,7 @@
+import argparse
 import json
 import pathlib
+import textwrap
 import time
 from datetime import datetime
 from typing import Any
@@ -11,359 +13,238 @@ from dotenv import load_dotenv
 from vertexai.generative_models import GenerativeModel, Part, Content
 
 from constants import *
-import stats
 from rag import Rag
 
 load_dotenv()
 
+def _create_first_message(activity1: str, activity2: str, context) -> list:
+    return [{"role": "user", "content": f"Apart from the law of nature, which of the categories best describes the contextual origin of why {activity1} occurs before {activity2}? Explain why you chose this category and not another one. If none of the categories apply to the relationship, explain why it is not an instance of any of the categories. After discussing the contextual origin, discuss if the ordering is due to a law of nature.\nContext:\n{context}"}]
+
+def _create_second_message() -> list:
+    return [
+        {
+            "role": "user",
+            "content": textwrap.dedent("""Structure your answer in the following format without any additional text, and replace the placeholders with the correct values:
+                {
+                    "First Activity": "-",
+                    "Second Activity": "-",
+                    "Category": "-",
+                    "Justification": "-",
+                    "Law of Nature": "-"
+                }
+
+                If none of the three contextual origin categories apply to the relationship, put a dash in the Category and Justification fields and do not include any other text for justifying your decision. Otherwise, put the category you chose in the "Category" field, the justification for your choice in the "Justification" field. In the "Law of Nature" field, if the answer is yes, then you should put justification in the value, if it is no, then only put a single dash.""")
+        }
+    ]
 
 class Classifier:
-    def __init__(self, activities: list, model: str = "gpt-4o-mini", sys_path: str = "airport/sys_desc_vanilla.txt",
-                 process_desc_path: str = "airport/desc.txt", is_rag: bool = False,
-                 rag_collection_name: str = "airport",
-                 method: str = "normal", truth_file: str = "airport/Airport_GroundTruth.csv"):
+    """
+    A class to classify relationships between activities based on a given process description.
 
-        with open(pathlib.Path(__file__).parent / sys_path, "r", encoding="utf-8") as f:
-            form = f.read()
+    Attributes:
+        model (str): The model to use for classification.
+        method (str): The method to use for classification.
+        is_rag (bool): Whether to use RAG for context retrieval.
+        # truth_file (str): The path to the truth file.
+        activities (list): A list of activities to classify.
+        system_prompt (str): The system prompt for the model.
+        context (str): The context for classification.
+        result_file (file object): The file to write the classification results.
 
-        if method not in methods:
-            raise ValueError("Method not supported")
-        self.method = method
+    Methods:
+        classify_relationships(): Classifies the relationships between activities.
+    """
+    def __init__(self, folder_name: pathlib.Path, model: str, method: str, rag: bool, vertexai_project_name: str = None, vertexai_location: str = None):
+        if not folder_name.exists():
+            raise ValueError("Folder not found")
 
-        self.result_file = None
         self.model = model
-        if self.model in models_openai or method == "consensus":
+        self.method = method
+        self.is_rag = rag
+
+        # if not (folder_name / "truth.csv").exists():
+        #     raise ValueError("Truth file not found")
+        # self.truth_file = folder_name / "truth.csv"
+
+        activities_path = folder_name / "activities.txt"
+        if not activities_path.exists():
+            raise ValueError("Activities file not found")
+        with open(activities_path, "r", encoding="utf-8") as f:
+            self.activities = [line.strip() for line in f if line.strip()]
+
+        self._validate_method()
+
+        example_path = folder_name / "examples.txt"
+        if not example_path.exists() and method in ["few", "few-cot"]:
+            raise ValueError("Example file not provided for few-shot learning")
+        self._build_system_prompt(example_path)
+
+        self._initialize_clients(vertexai_project_name, vertexai_location)
+
+        process_desc_path = folder_name / "desc.txt"
+        if not process_desc_path.exists():
+            raise ValueError("Process description file not provided")
+        self._load_process_description(process_desc_path)
+
+        self._create_result_path(folder_name)
+
+    def _build_system_prompt(self, example_path: pathlib.Path):
+        base_text = textwrap.dedent("""
+        You are an assistant business process re-designer. Your job is to explain the context behind the ordering of a pair of activities, given the pair of activities and the process description, by categorizing the reason of the specific order in zero or one of the three following categories:
+        1- Governmental Law: Rules created and enforced by governmental institutions to regulate business behaviour (i.e. Customer cannot cash a cheque without validating their documents).
+        2- Best Practice: Procedures usually accepted by the organization's staff or industry-wide to be superior to alternatives, but are not required to be followed nor enforced by any stakeholder (i.e. Following up with patients after treatment).
+        3- Business Rule: Rules that are under full jurisdiction of the stakeholders of the process (i.e. organization or suppliers) that can change or discard this rule at their own discretion (i.e. holding regular meetings after starting project).
+    
+        Separate from the other categories, you need to decide if the relationship is due to a law of nature, which is an inviolable relationship where the second activity cannot precede the second activity due to either a deadlock occurring or due to a data (i.e. You cannot reply to a message without receiving it), resource dependency (i.e. You cannot print a document without having paper), or logical dependency from the first activity.""").lstrip("\n")
+
+        vanilla_text = textwrap.dedent("""
+        Structure your answer in the following format without any additional text, and replace the placeholders with the correct values:
+        {
+            "First Activity": "-",
+            "Second Activity": "-",
+            "Category": "-",
+            "Justification": "-",
+            "Law of Nature": "-"
+        }
+        If none of the categories apply to the relationship, put a dash in the Category and Justification fields and do not include any other text for justifying your decision. Otherwise, put the category you chose in the "Category" field, the justification for your choice in the "Justification" field. If the relationship is an instance of a Law of Nature, you should provide justification in the "Law of Nature" field for why the relationship is due to a law of nature, if not, you should put a dash in the field.
+        You will receive the prompt as "What is the relationship between [First Activity] and [Second Activity]?", the first activity always occurs in time before the second activity. Return only the JSON response with no other text outside the JSON.""")
+
+        self.system_prompt = base_text
+        if self.method in ["vanilla", "few"]:
+            self.system_prompt += "\n" + vanilla_text
+            if self.method == "few":
+                with open(example_path, "r", encoding="utf-8") as f:
+                    self.system_prompt += "\n" + f.read()
+        elif self.method in ["few-cot"]:
+            with open(example_path, "r", encoding="utf-8") as f:
+                self.system_prompt += "\n" + f.read()
+
+    def _validate_method(self):
+        if self.method not in methods:
+            raise ValueError(f"Method {self.method} not supported")
+
+    def _initialize_clients(self, vertexai_project_name: str = None, vertexai_location: str = None):
+        if self.model in models_openai:
             self.openai_client = openai.OpenAI()
-            self.openai_sys = {"role": "system", "content": form}
-        if self.model in models_anthropic or method == "consensus":
+            self.openai_sys = {"role": "system", "content": self.system_prompt}
+        if self.model in models_anthropic:
             self.claude_client = Anthropic()
-            self.anthropic_sys = form
-        if self.model in models_vertex or method == "consensus":
-            vertexai.init(project="solid-scope-430714-m9", location="europe-west3")  # us-central1
-            self.vertex_sys = form
-        if model not in all_models:
+            self.anthropic_sys = self.system_prompt
+        if self.model in models_vertex:
+            if not vertexai_project_name:
+                raise ValueError("Project name not provided for Vertex AI, must be provided for Vertex AI models")
+            if not vertexai_location:
+                raise ValueError("Location not provided for Vertex AI, must be provided for Vertex AI models")
+            vertexai.init(project=vertexai_project_name, location=vertexai_location)
+            self.vertex_sys = self.system_prompt
+        if self.model not in all_models:
             raise ValueError("Model not supported")
 
-        self.is_rag = is_rag
-        if self.is_rag:
-            self.rag_engine = Rag(rag_collection_name)
+    def _load_process_description(self, process_desc_path: pathlib.Path):
+        with open(process_desc_path, encoding="utf8", mode="r") as f:
+            process_desc = f.read()
+            self.context = process_desc
 
-        self.activities = activities
-        self.truth_file = truth_file
-
-        with open(pathlib.Path(__file__).parent / process_desc_path, encoding="utf8", mode="r") as f:
-            self.process_desc = f.read()
-            self.context = self.process_desc
-
-        self.create_path(rag_collection_name)
-
-    def create_path(self, name):
-        pathlib.Path("results").mkdir(parents=True, exist_ok=True)
+    def _create_result_path(self, absolute_path: pathlib.Path):
+        # (absolute_path / "results").mkdir(parents=True, exist_ok=True)
         now = datetime.now()
         dt_string = now.strftime("%d%m%Y-%H%M%S")
-        result_file_name = name + "-" + dt_string
+        result_file_name = absolute_path.name + "-" + dt_string
         folder_name = self.model.replace(":", "-")
         if self.is_rag:
-            self.rag_engine.load_embeddings(self.process_desc)
-            pathlib.Path(f"results/{self.method}/rag").mkdir(parents=True, exist_ok=True)
-            pathlib.Path(f"results/{self.method}/rag/" + folder_name).mkdir(parents=True, exist_ok=True)
-            self.result_file = pathlib.Path(f"results/{self.method}/rag/" + folder_name + "/" + result_file_name
-                                            + ".csv").open("x")
+            self.rag_engine = Rag(absolute_path.name)
+            self.rag_engine.load_embeddings(self.context)
+            (absolute_path / "results" / self.method / "rag" / folder_name).mkdir(parents=True, exist_ok=True)
+            self.result_file = (absolute_path / "results" / self.method / "rag" / folder_name / (result_file_name + ".csv")).open("x")
         else:
-            pathlib.Path(f"results/{self.method}/" + folder_name).mkdir(parents=True, exist_ok=True)
-            self.result_file = pathlib.Path(f"results/{self.method}/" + folder_name + "/" + result_file_name
-                                            + ".csv").open("x")
+            (absolute_path / "results" / self.method / folder_name).mkdir(parents=True, exist_ok=True)
+            self.result_file = (absolute_path / "results" / self.method / folder_name / (result_file_name + ".csv")).open("x")
 
     def classify_relationships(self):
-        if self.method == "normal":
-            self.normal()
-        elif self.method == "cot":
-            self.cot()
-        elif self.method == "few":
-            self.normal()
-        elif self.method == "few-cot":
-            self.cot()
+        if self.method in ["vanilla", "few"]:
+            self._classify_normal()
+        elif self.method in ["cot", "few-cot"]:
+            self._classify_cot()
 
-        stats.calculate_stats(self.truth_file, self.result_file.name, method=self.method)
+        # stats.calculate_stats(self.truth_file, self.result_file.name, method=self.method)
 
-    def normal(self):
-        count = 0
-        self.result_file.write("sep=;\nFirst Activity;Second Activity;" + ";".join(categories) + f";{lon};Comments\n")
+    def _classify_normal(self):
+        self._write_result_header()
         for i in range(len(self.activities)):
             for j in range(i + 1, len(self.activities)):
-                # Get the context using RAG
-                if self.is_rag:
-                    context = self.rag_engine.return_related([self.activities[i], self.activities[j]])
-                else:
-                    context = self.context
-
-                # ASK FOR ALL CATEGORIES AT ONCE
-                # OPENAI
-                if hasattr(self, "openai_sys"):
-                    messages = [
-                        self.openai_sys,
-                        {"role": "user",
-                         "content": "Context:\n" + (context if isinstance(context, str) else '\n'.join(context))},
-                        {"role": "user", "content": "What is the relationship between " + self.activities[i]
-                                                    + " and " + self.activities[j] + "?"}]
-                    parse = self.call_openai(messages, self.model)
-
-                # ANTHROPIC:
-                elif hasattr(self, "claude_client"):
-                    sys_cached = [
-                        {
-                            "type": "text",
-                            "text": self.anthropic_sys
-                        },
-                        {
-                            "type": "text",
-                            "text": self.context,
-                            "cache_control": {"type": "ephemeral"}
-                        }
-                    ]
-                    # messages = [
-                    #     {"role": "user",
-                    #      "content": "Here is some context about the process:\n"
-                    #      + (context if isinstance(context, str) else '\n'.join(context))
-                    #      + "\n What is the relationship between " + self.activities[i] + " and "
-                    #      + self.activities[j] + "?"}]
-                    messages = [
-                        {"role": "user",
-                         "content": "What is the relationship between " + self.activities[i] + " and " +
-                                    self.activities[j]}
-                    ]
-                    parse = self.claude_client.beta.prompt_caching.messages.create(
-                        model=self.model,
-                        system=sys_cached,
-                        messages=messages,
-                        max_tokens=1024
-                    )
-                    # print("Input tokens: " + str(parse.usage.input_tokens))
-                    # print("Cache creation tokens: " + str(parse.usage.cache_creation_input_tokens))
-                    # print("Cache read tokens: " + str(parse.usage.cache_read_input_tokens))
-                    # print("Output tokens: " + str(parse.usage.output_tokens))
-                    print(parse.content[0].text)
-                    parse = parse.content[0].text
-                    # parse = self.call_anthropic(messages, self.model, self.anthropic_sys)
-
-                # VERTEX:
-                elif hasattr(self, "vertex_sys"):
-                    messages = [
-                        {"role": "user",
-                         "content": "Here is some context about the process:\n" + (context if isinstance(context, str)
-                                                                                   else '\n'.join(
-                             context)) + "What is the relationship between " + self.activities[i] + " and "
-                                    + self.activities[j] + "?"}]
-                    parse = self.call_vertex(messages, self.model, self.vertex_sys)
-                else:
-                    raise ValueError("Model not supported")
-
-                if parse[0] == '`':
-                    parse = parse[8:-4]
-                try:
-                    parse = json.loads(parse)
-                except json.JSONDecodeError:
-                    parse = self.fix_json(parse)
-
-                self.result_file.write(self.activities[i] + ";" + self.activities[j] + ";")
-                for category in categories:
-                    if category == parse["Category"]:
-                        self.result_file.write(parse["Justification"] + ";")
-                    else:
-                        self.result_file.write("-;")
-                try:
-                    if str(parse["Category"]).lower() == "law of nature":
-                        self.result_file.write(parse["Justification"] + ";")
-                    else:
-                        self.result_file.write(parse["Law of Nature"] + ";")  # + \n
-                except KeyError:
-                    self.result_file.write("-;")
-                self.result_file.write(json.dumps(parse).replace('\n', ' ').replace('\r', '') + "\n")
-                print("---------------------------------------------------")
-                count += 1
+                context = self._get_context([self.activities[i], self.activities[j]])
+                messages = [{"role": "user", "content": f"What is the relationship between {self.activities[i]} and {self.activities[j]}?\nContext:\n{context}"}]
+                parse = self._get_model_response(messages)
+                parse = self._parse_response(parse)
+                self._write_result_row(parse, self.activities[i], self.activities[j])
             self.result_file.flush()
-        print(count)
 
-    def cot(self):
-        self.result_file.write("sep=;\nFirst Activity;Second Activity;" + ";".join(categories) + f";{lon};Comments\n")
+    def _classify_cot(self):
+        self._write_result_header()
         for i in range(len(self.activities)):
             for j in range(i + 1, len(self.activities)):
-                # Get the context using RAG CONTEXT CURRENTLY IN SYSTEM PROMPT
-                # if self.is_rag:
-                #     context = self.rag_engine.return_related([self.activities[i], self.activities[j]])
-                # else:
-                #     context = self.context
-                # context = context if isinstance(context, str) else '\n'.join(context)
-
-                # first_m = f"Apart from the law of nature, which of the categories best describes the contextual origin of why {self.activities[i]} occurs before {self.activities[j]}? Explain why you chose this category and not another one. If none of the categories apply to the relationship, explain why it is not an instance of any of the categories. After discussing the contextual origin, discuss if the ordering is due to a law of nature. ### Context: {context}"
-                first_m = f"Apart from the law of nature, which of the categories best describes the contextual origin of why {self.activities[i]} occurs before {self.activities[j]}? Explain why you chose this category and not another one. If none of the categories apply to the relationship, explain why it is not an instance of any of the categories. After discussing the contextual origin, discuss if the ordering is due to a law of nature."
-
-                # OPENAI
-                messages = [
-                    {"role": "user",
-                     "content": first_m}
-                ]
-                if hasattr(self, "openai_sys"):
-                    messages = [
-                        self.openai_sys,
-                        {"role": "user",
-                         "content": first_m},
-                    ]
-                    parse = self.call_openai(messages, self.model)
-
-                # ANTHROPIC:
-                elif hasattr(self, "claude_client"):
-                    sys_cached = [
-                        {
-                            "type": "text",
-                            "text": self.anthropic_sys,
-                            "cache_control": {"type": "ephemeral"}
-                        }
-                    ]
-                    parse = self.claude_client.beta.prompt_caching.messages.create(
-                        model=self.model,
-                        system=sys_cached,
-                        messages=messages,
-                        max_tokens=1024
-                    )
-                    # print("Input tokens: " + str(parse.usage.input_tokens))
-                    # print("Cache creation tokens: " + str(parse.usage.cache_creation_input_tokens))
-                    # print("Cache read tokens: " + str(parse.usage.cache_read_input_tokens))
-                    # print("Output tokens: " + str(parse.usage.output_tokens))
-                    print(parse.content[0].text)
-                    parse = parse.content[0].text
-
-                # VERTEX:
-                elif hasattr(self, "vertex_sys"):
-                    parse = self.call_vertex(messages, self.model, self.vertex_sys)
-                else:
-                    raise ValueError("Model not supported")
-
-                the_cot = parse
-                messages.append({"role": "assistant", "content": parse})
-                messages.append({"role": "user",
-                                 "content": """
-                                 Structure your answer in the following format without any additional text, and replace the placeholders with the correct values:
-{
-    "First Activity": "-",
-    "Second Activity": "-",
-    "Category": "-",
-    "Justification": "-"
-    "Law of Nature": "-"
-}
-
-If none of the three contextual origin categories apply to the relationship, put a dash in the Category and Justification fields and do not include any other text for justifying your decision. Otherwise, put the category you chose in the "Category" field, the justification for your choice in the "Justification" field. In the "Law of Nature" field you should put yes or no in the answer key with a justification. 
-                                 """})
-
-                if hasattr(self, "openai_sys"):
-                    messages.insert(0, self.openai_sys)
-                    parse = self.call_openai(messages, self.model)
-
-                elif hasattr(self, "claude_client"):
-                    sys_cached = [
-                        {
-                            "type": "text",
-                            "text": self.anthropic_sys,
-                            "cache_control": {"type": "ephemeral"}
-                        }
-                    ]
-                    parse = self.claude_client.beta.prompt_caching.messages.create(
-                        model=self.model,
-                        system=sys_cached,
-                        messages=messages,
-                        max_tokens=1024
-                    )
-                    print("Input tokens: " + str(parse.usage.input_tokens))
-                    print("Cache creation tokens: " + str(parse.usage.cache_creation_input_tokens))
-                    print("Cache read tokens: " + str(parse.usage.cache_read_input_tokens))
-                    print("Output tokens: " + str(parse.usage.output_tokens))
-                    print(parse.content[0].text)
-                    parse = parse.content[0].text
-
-                elif hasattr(self, "vertex_sys"):
-                    parse = self.call_vertex(messages, self.model, self.vertex_sys)
-                else:
-                    raise ValueError("Model not supported")
-
-                if parse[0] == '`':
-                    parse = parse[8:-4]
-                try:
-                    parse = json.loads(parse)
-                except json.JSONDecodeError:
-                    parse = self.fix_json(parse)
-
-                self.result_file.write(self.activities[i] + ";" + self.activities[j] + ";")
-                for category in categories:
-                    if category == parse["Contextual Origin"]["Category"]:
-                        self.result_file.write(parse["Contextual Origin"]["Justification"] + ";")
-                    else:
-                        self.result_file.write("-;")
-                try:
-                    if str(parse["Law of Nature"]["Answer"]).lower() == "yes" or str(
-                            parse["Law of Nature"]["Answer"]).lower() == "yes.":
-                        self.result_file.write(parse["Law of Nature"]["Justification"] + ";")
-                    else:
-                        self.result_file.write("-;")
-                except KeyError:
-                    self.result_file.write("-;")
-                self.result_file.write(the_cot.replace('\n', ' ').replace('\r', '').replace(';', ',') + " " +
-                                       json.dumps(parse).replace('\n', ' ').replace('\r', '').replace(';', ',') + "\n")
-                print("---------------------------------------------------")
+                context = self._get_context([self.activities[i], self.activities[j]])
+                messages = _create_first_message(self.activities[i], self.activities[j], context)
+                cot = self._get_model_response(messages)
+                messages.append({"role": "assistant", "content": cot})
+                messages.extend(_create_second_message())
+                parse = self._get_model_response(messages)
+                parse = self._parse_response(parse)
+                self._write_result_row(parse, self.activities[i], self.activities[j])
             self.result_file.flush()
 
-    def fix_json(self, parse: str) -> dict:
-        self.openai_client = openai.OpenAI()
-        if parse[0] == '`':
-            parse = parse[8:-4]
-        try:
-            json.loads(parse)
-        except json.JSONDecodeError:
-            messages = [{"role": "user", "content": "Could you check if this JSON string is valid and properly escaped,"
-                                                    "if not, please fix it and return it to me without any additional"
-                                                    "text. Make sure its valid to be parsed in python\n" + parse}]
-            parse = self.call_openai(messages, "gpt-4o-mini")
-            if parse[0] == '`':
-                parse = parse[8:-4]
-        return json.loads(parse)
+    def _write_result_header(self):
+        self.result_file.write("sep=;\nFirst Activity;Second Activity;" + ";".join(categories) + f";{lon}\n")
 
-    def call_openai(self, messages: list[dict], model: str, temperature: float = 0) -> Any:
+    def _get_context(self, activities: list) -> list | str:
+        if self.is_rag:
+            return self.rag_engine.return_related(activities)
+        return self.context
+
+    def _get_model_response(self, messages: list) -> Any:
+        if hasattr(self, "openai_client"):
+            messages.insert(0, self.openai_sys)
+            ret = self._call_openai(messages)
+        elif hasattr(self, "claude_client"):
+            ret = self._call_anthropic(messages)
+        elif hasattr(self, "vertex_sys"):
+            ret = self._call_vertex(messages)
+        else:
+            raise ValueError("Model not supported")
+        print(ret + "\n" + "-" * 100)
+        return ret
+
+    def _write_result_row(self, parse: dict[str, str], activity1: str, activity2: str):
+        self.result_file.write(f"{activity1};{activity2};")
+        for category in categories:
+            self.result_file.write(f"{parse.get('Justification', '-') if category == parse.get('Category') else '-'};")
+        self.result_file.write(f"{parse.get('Law of Nature')}\n")
+
+    def _call_openai(self, messages: list[dict], temperature: float = 0) -> Any:
         completion = self.openai_client.chat.completions.create(
-            model=model,
+            model=self.model,
             messages=messages,
             temperature=temperature,
         )
-        print(model + ": " + completion.choices[0].message.content)
-        # print(completion.choices[0].message.content)
         return completion.choices[0].message.content
 
-    def call_anthropic(self, messages: list[dict], model: str, sys: str = "", temperature: float = 0) -> Any:
+    def _call_anthropic(self, messages: list[dict], temperature: float = 0) -> Any:
         completion = self.claude_client.messages.create(
-            model=model,
-            system=sys,
+            model=self.model,
+            system=self.anthropic_sys,
             messages=messages,
             temperature=temperature,
             max_tokens=1024
         )
-        print(model + ": " + completion.content[0].text)
-        # print(completion.content[0].text)
         return completion.content[0].text
 
-    def call_vertex(self, messages: list[dict], model: str, sys: str = "", temperature: float = 0) -> Any:
+    def _call_vertex(self, messages: list[dict], temperature: float = 0) -> Any:
         model_gen = GenerativeModel(
-            model,
-            system_instruction=[sys]
+            model_name=self.model,
+            system_instruction=[self.vertex_sys]
         )
-        if len(messages) == 1:
-            chat = model_gen.start_chat()
-        else:
-            hist = []
-            for message_i in range(len(messages) - 1):
-                role = messages[message_i]["role"] if messages[message_i]["role"] == "user" else "model"
-                content = messages[message_i]["content"]
-                hist.append(Content(role=role, parts=[Part.from_text(content)]))
-            chat = model_gen.start_chat(history=hist)
-
-        for i in range(5):
+        chat = model_gen.start_chat() if len(messages) == 1 else model_gen.start_chat(history=self._create_history(messages))
+        for _ in range(5):
             try:
                 response = chat.send_message(
                     content=messages[-1]["content"],
@@ -383,56 +264,75 @@ If none of the three contextual origin categories apply to the relationship, put
                 break
         else:
             raise Exception("Failed to send message to vertex AI")
-
-        print(model + ": " + response.text)
         return response.text
+
+    def _create_history(self, messages: list[dict]) -> list:
+        history = []
+        for message in messages[:-1]:
+            role = message["role"] if message["role"] == "user" else "model"
+            content = message["content"]
+            history.append(Content(role=role, parts=[Part.from_text(content)]))
+        return history
+
+    def _parse_response(self, response: str) -> dict:
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError:
+            return self._fix_json(response)
+
+    def _fix_json(self, response: str) -> dict:
+        messages = [{"role": "user", "content": f"Could you check if this JSON string is valid and properly escaped, if not, please fix it and return it to me without any additional text. Make sure it's valid to be parsed in python\n{response}"}]
+
+        if hasattr(self, "openai_sys"):
+            fixed_response = self._call_openai(messages)
+        elif hasattr(self, "claude_client"):
+            fixed_response = self._call_anthropic(messages)
+        elif hasattr(self, "vertex_sys"):
+            fixed_response = self._call_vertex(messages)
+        else:
+            raise ValueError("Model not supported")
+
+        return json.loads(fixed_response)
 
     def __del__(self):
         if self.result_file:
             self.result_file.close()
 
-travel_acts = [
-    "Fill out travel request",
-    "Attach documents",
-    "Sign Travel Request",
-    "Scan and Send documents",
-    "Check documents",
-    "Go on the business trip",
-    "Fill out travel reimbursement request",
-    "Attach invoices",
-    "Scan and send reimbursement request",
-    "Check reimbursement request",
-    "Initiate bank transfer"
-]
+def main():
+    """
+    Main function to classify relationships between activities.
 
-thesis_acts = [
-    "Search for a topic",
-    "Conduct informal meeting to explain topic",
-    "Write and submit proposal",
-    "Get registered by chair on Koinon",
-    "Student accept thesis on Koinon",
-    "Start writing thesis",
-    "Conduct regular catch-up meetings",
-    "Submit thesis on Koinon",
-    "Present thesis in Colloquium"
-]
-acts = ['Scan ticket',
-        'Change number of bags',
-        'Change seat',
-        'Check validity of documents',
-        'Weigh baggage',
-        'Cancel check-in',
-        'Process payment',
-        'Check-in luggage',
-        'Load luggage'
-]
+    This function sets up the argument parser to accept command-line arguments, parses the arguments,
+    and initializes the Classifier class with the provided arguments. It then calls the classify_relationships
+    method to perform the classification.
 
-cls = Classifier(thesis_acts,
-                 "claude-3-5-sonnet-20240620",
-                 method="cot",
-                 sys_path="interviews/cot_sys2.txt",
-                 process_desc_path="interviews/desc.txt",
-                 truth_file="interviews/truth.csv",
-                 is_rag=False,
-                 rag_collection_name="thesis")
-cls.classify_relationships()
+    Command-line arguments:
+    --folder_name (str, required): The folder name containing the following input files: desc.txt, activities.txt, truth.txt.
+    --model (str, optional): The model to use for classification. Defaults to 'claude-3-5-haiku-latest'. Check constants.py for supported models.
+    --method (str, optional): The method to use for classification. Defaults to 'vanilla'. Check constants.py for supported methods.
+    --rag (bool, optional): Whether to use RAG for context retrieval. Defaults to True. Use --no-rag to disable.
+    --path (str, optional): The path to the folder containing input files. Defaults to the same directory as the Python file.
+    --vertexai_project_name (str, optional): The Vertex AI project name.
+    --vertexai_location (str, optional): The Vertex AI location.
+
+    Returns:
+    None
+    """
+    parser = argparse.ArgumentParser(description="Classify relationships between activities.")
+    parser.add_argument("--folder_name", required=True, type=str, help="The folder name containing the following input files: desc.txt, activities.txt, truth.txt")
+    parser.add_argument("--model", type=str, default="claude-3-5-haiku-latest", help="The model to use for classification. Check constants.py for supported models.")
+    parser.add_argument("--method", type=str, default="vanilla", help="The method to use for classification. Check constants.py for supported methods.")
+    parser.add_argument("--rag", type=bool, action=argparse.BooleanOptionalAction, default=True, help="Whether to use RAG for context retrieval. Defaults to True. Use --no-rag to disable.")
+    parser.add_argument("--path", type=str, default=str(pathlib.Path(__file__).parent), help="The path to the folder containing input files. Defaults to the same directory as the Python file.")
+    parser.add_argument("--vertexai_project_name", type=str, help="The Vertex AI project name")
+    parser.add_argument("--vertexai_location", type=str, help="The Vertex AI location")
+
+    args = parser.parse_args()
+
+    folder_path = pathlib.Path(args.path) / args.folder_name
+    cls = Classifier(folder_name=folder_path, model=args.model, method=args.method, rag=args.rag,
+                     vertexai_project_name=args.vertexai_project_name, vertexai_location=args.vertexai_location)
+    cls.classify_relationships()
+
+if __name__ == "__main__":
+    main()
