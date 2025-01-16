@@ -139,9 +139,9 @@ class Classifier:
     def classify_relationships(self):
         
         self._write_result_header()
-        for i in range(4): #TODO /2
+        for i in range(2): #TODO /2
             activity1 = self.activities[i]
-            for j in range(i + 1, 4):
+            for j in range(i + 1, 2):
                 activity2 = self.activities[j]
                 context = self._get_context([activity1, activity2])
                 log(f'Classifying "{activity1}"->"{activity2}"')
@@ -155,6 +155,7 @@ class Classifier:
             self.result_file.flush()
 
         # stats.calculate_stats(self.truth_file, self.result_file.name, method=self.method)
+        return self.result_file.name
 
     def _classify_normal(self, activity1, activity2, context):
         messages = [{"role": "user", "content": prompts.create_query(activity1, activity2, context)}]
@@ -211,7 +212,7 @@ class Classifier:
             self.result_file.write(f"{parse.get('Justification', '-') if category == parse.get('Category') else '-'};")
         self.result_file.write(f"{parse.get('Law of Nature')}\n")
 
-    def _call_openai(self, messages: list[dict], temperature: float = 0, system_prompt : str = None) -> Any:
+    def _call_openai(self, messages: list[dict], system_prompt : str = None, temperature: float = 0) -> Any:
         if system_prompt:
             messages.insert(0,{"role": "system", "content": system_prompt})
         completion = self.client.chat.completions.create(

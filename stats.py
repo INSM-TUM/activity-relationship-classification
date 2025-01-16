@@ -1,15 +1,8 @@
 import pathlib
 
 from constants import categories, all_categories
-import pandas as pd
 
 
-def change_xlsx_to_csv(name):
-    df = pd.read_excel(f'{name}.xlsx')
-
-    df = df[
-        ["First Activity", "Second Activity", "Governmental Law", "Best Practice", "Business Rule", "Law of Nature"]]
-    df.to_csv(f'{name}.csv', sep=";", index=False)
 
 def calculate_stats(truth_file: str, generated_file: str, method: str = "normal"):
     cats_count = {"Governmental Law": {"tp": 0, "fp": 0, "fn": 0, "tn": 0, "precision": 0, "recall": 0, "F1-Score": 0},
@@ -75,7 +68,7 @@ def calculate_stats(truth_file: str, generated_file: str, method: str = "normal"
         # if consensus:
         #     file_name = f"stats/consensus-{pathlib.Path(truth_file).stem}-{pathlib.Path(generated_file).stem}.csv"
         # else:
-        file_name = f"./stats/{method}-{pathlib.Path(truth_file).stem}-{pathlib.Path(generated_file).parent.name}-{pathlib.Path(generated_file).stem}.csv"
+        file_name = pathlib.Path(truth_file).parent / 'stats' / f"{pathlib.Path(generated_file).stem}.csv"
         print(file_name)
         with open(file_name, "w") as stats_file:
             stats_file.write("Category,TP,FN,FP,TN,Precision,Recall,F1\n")
@@ -88,18 +81,16 @@ def calculate_stats(truth_file: str, generated_file: str, method: str = "normal"
                 stats_file.write(f"{cats_count[cat]['tn']},")
                 stats_file.write(f"{precision(cats_count[cat]['tp'], cats_count[cat]['fp']):.3f},")
                 stats_file.write(f"{recall(cats_count[cat]['tp'], cats_count[cat]['fn']):.3f},")
-                stats_file.write(
-                    f"{f1_score(cats_count[cat]['tp'], cats_count[cat]['fp'], cats_count[cat]['fn']):.3f}\n")
+                stats_file.write(f"{f1_score(cats_count[cat]['tp'], cats_count[cat]['fp'], cats_count[cat]['fn']):.3f}\n")
             
             stats_file.write("Average (without law of nature),")
             stats_file.write(f"-,")
             stats_file.write(f"-,")
             stats_file.write(f"-,")
             stats_file.write(f"-,")
-            stats_file.write(f"{average_metrics["precision"]:.3f},")
-            stats_file.write(f"{average_metrics["recall"]:.3f},")
-            stats_file.write(
-                f"{average_metrics["F1-Score"]:.3f}\n")
+            stats_file.write(f"{average_metrics['precision']:.3f},")
+            stats_file.write(f"{average_metrics['recall']:.3f},")
+            stats_file.write(f"{average_metrics['F1-Score']:.3f}\n")
 
 def precision(tp: int, fp: int):
     try:
