@@ -5,7 +5,7 @@ base_text = """You are an assistant business process re-designer. Your job is to
 2- Best Practice: Procedures usually accepted by the organization's staff or industry-wide to be superior to alternatives, but are not required to be followed nor enforced by any stakeholder (i.e. Following up with patients after treatment).
 3- Business Rule: Rules that are under full jurisdiction of the stakeholders of the process (i.e. organization or suppliers) that can change or discard this rule at their own discretion (i.e. holding regular meetings after starting project).
 
-Separate from the other categories, you need to decide if the relationship is due to a law of nature, which is an inviolable relationship where the second activity cannot precede the second activity due to either a deadlock occurring or due to a data (i.e. You cannot reply to a message without receiving it), resource dependency (i.e. You cannot print a document without having paper), or logical dependency from the first activity."""
+Separate from the categories, you need to decide if the relationship is due to a law of nature, which is an inviolable relationship where the second activity cannot precede the second activity due to either a deadlock occurring or due to a data (i.e. You cannot reply to a message without receiving it), resource dependency (i.e. You cannot print a document without having paper), or logical dependency from the first activity."""
 
 
 how_to_format = """Structure your answer in the following format without any additional text, and replace the placeholders with the correct values:

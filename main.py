@@ -9,6 +9,7 @@ from typing import Any
 import openai
 import vertexai
 from anthropic import Anthropic
+from os import getenv
 from dotenv import load_dotenv
 from vertexai.generative_models import GenerativeModel, Part, Content
 from ollama import Client
@@ -16,13 +17,12 @@ from ollama import Client
 from datetime import datetime
 
 from constants import *
+from util import *
 from rag import Rag
 import prompts
 
 load_dotenv()
 
-def log(message: str):
-    print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '] '+message)
 
 
 class Classifier:
@@ -42,7 +42,7 @@ class Classifier:
     Methods:
         classify_relationships(): Classifies the relationships between activities.
     """
-    def __init__(self, input_folder: pathlib.Path | str, model: str, method: str, rag: bool, vertexai_project_name: str = None, vertexai_location: str = None, dry_run : bool = False):
+    def __init__(self, input_folder: pathlib.Path | str, model: str, method: str, rag: bool, dry_run : bool = False):
         log('Classifier '+str(locals()))
         if isinstance(input_folder, str):
             input_folder = pathlib.Path(input_folder)
@@ -72,7 +72,7 @@ class Classifier:
             raise ValueError("Example file not provided for few-shot learning")
         self._build_system_prompt(example_path)
 
-        self._initialize_clients(vertexai_project_name, vertexai_location)
+        self._initialize_clients()
 
         process_desc_path = input_folder / "desc.txt"
         if not process_desc_path.exists():
@@ -96,7 +96,7 @@ class Classifier:
         if self.method not in methods:
             raise ValueError(f"Method {self.method} not supported")
 
-    def _initialize_clients(self, vertexai_project_name: str = None, vertexai_location: str = None):
+    def _initialize_clients(self):
         if self.dry_run:
             return
         elif self.platform == Platforms.OPEN_AI:
@@ -104,6 +104,8 @@ class Classifier:
         elif self.platform == Platforms.ANTHROPIC:
             self.client = Anthropic()
         elif self.platform == Platforms.VERTEX:
+            vertexai_project_name = getenv('VERTEXAI_PROJECT_NAME')
+            vertexai_location = getenv('VERTEXAI_LOCATION')
             if not vertexai_project_name:
                 raise ValueError("Project name not provided for Vertex AI, must be provided for Vertex AI models")
             if not vertexai_location:
@@ -125,27 +127,21 @@ class Classifier:
     def _create_result_path(self, input_folder: pathlib.Path):
         # (absolute_path / "results").mkdir(parents=True, exist_ok=True)
         dt_string = datetime.now().strftime("%d%m%Y-%H%M%S")
-        result_file_name = input_folder.name + "-" + dt_string
-        folder_name = self.model.replace(":", "-")
-        if self.is_rag:
-            (input_folder / "results" / self.method / "rag" / folder_name).mkdir(parents=True, exist_ok=True)
-            self.result_file = (input_folder / "results" / self.method / "rag" / folder_name / (result_file_name + ".csv")).open("x")
-        else:
-            (input_folder / "results" / self.method / folder_name).mkdir(parents=True, exist_ok=True)
-            self.result_file = (input_folder / "results" / self.method / folder_name / (result_file_name + ".csv")).open("x")
+        result_file_name = f"{input_folder.name}-{dt_string}--{self.model.replace(':', '-')}-{self.method}{'_rag' if self.is_rag else ''}"
+        output_folder = input_folder / "results" 
+        output_folder.mkdir(parents=True, exist_ok=True)
+        self.result_file = (output_folder / (result_file_name + ".csv")).open("x")
 
     def _init_rag(self, input_folder: pathlib.Path):
         log('Initializing RAG')
-        self.rag_engine = Rag(input_folder.name)
-        log('Loading embeddings')
-        self.rag_engine.load_embeddings(self.process_desc)
+        self.rag_engine = Rag(input_folder.name, self.process_desc)
 
     def classify_relationships(self):
         
         self._write_result_header()
-        for i in range(2): #TODO /2
+        for i in range(4): #TODO /2
             activity1 = self.activities[i]
-            for j in range(i + 1, 2):
+            for j in range(i + 1, 4):
                 activity2 = self.activities[j]
                 context = self._get_context([activity1, activity2])
                 log(f'Classifying "{activity1}"->"{activity2}"')
@@ -186,9 +182,9 @@ class Classifier:
     def _get_model_response(self, messages: list, system_prompt : str = None) -> Any:
         if self.dry_run :
             print('====Messages=====')
-            print(messages)
+            # print(messages)
             print('====system_prompt=====')
-            print(system_prompt)
+            # print(system_prompt)
             ret = """{
     "First Activity": "-",
     "Second Activity": "-",
@@ -225,7 +221,7 @@ class Classifier:
         )
         return completion.choices[0].message.content
 
-    def _call_anthropic(self, messages: list[dict], temperature: float = 0, system_prompt : str = None) -> Any:
+    def _call_anthropic(self, messages: list[dict], system_prompt : str = None, temperature: float = 0) -> Any:
         completion = self.client.messages.create(
             model=self.model,
             system=system_prompt,
@@ -235,7 +231,7 @@ class Classifier:
         )
         return completion.content[0].text
 
-    def _call_vertex(self, messages: list[dict], temperature: float = 0, system_prompt : str = None) -> Any:
+    def _call_vertex(self, messages: list[dict], system_prompt : str = None, temperature: float = 0) -> Any:
         model_gen = GenerativeModel(
             model_name=self.model,
             system_instruction=[system_prompt]
@@ -289,19 +285,14 @@ class Classifier:
         try:
             return json.loads(response)
         except json.JSONDecodeError:
-            return self._fix_json(response)
-
-    def _fix_json(self, response: str) -> dict:
-        messages = [{"role": "user", "content": f"Could you check if this JSON string is valid and properly escaped, if not, please fix it and return it to me without any additional text. Make sure it's valid to be parsed in python\n{response}"}]
-
-        print('"Initial response:"' + response)
-
-        print('Messages' + str(messages))
-
-        fixed_response = self._get_model_response(messages) # No system prompt!
-
-        print('"Fixed response:"' + fixed_response)
-        return json.loads(fixed_response)
+            log('JSON Error')
+            return {
+                "First Activity": "-",
+                "Second Activity": "-",
+                "Category": "-",
+                "Justification": "JSON ERROR",
+                "Law of Nature": "-"
+            }
 
     def __del__(self):
         if hasattr(self, 'result_file'):
