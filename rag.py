@@ -6,18 +6,24 @@ from textsplitter import textsplitter
 from flashrank import Ranker, RerankRequest
 
 import logging
+from util import *
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 class Rag:
-    def __init__(self, collection_name: str):
+    def __init__(self, collection_name: str, process_desc: str):
         self.text_splitter = textsplitter.TextSplitter(max_token_size=50, remove_stopwords=False)
         chroma_client = chromadb.Client()
-        self.collection = chroma_client.create_collection(collection_name)
+        if any(filter(lambda collection : collection.name == collection_name, chroma_client.list_collections())):
+            self.collection = chroma_client.get_collection(collection_name)
+        else:
+            log(f'Creating new collection "{collection_name}"')
+            self.collection = chroma_client.create_collection(collection_name)
+            self._load_embeddings(process_desc)
         self.ranker = Ranker()
 
-    def load_embeddings(self, process_desc: str):
+    def _load_embeddings(self, process_desc: str):
         chunks = self.text_splitter.split_text(process_desc)
 
         output = replicate.run(
