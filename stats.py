@@ -1,6 +1,6 @@
 import pathlib
 
-from constants import all_categories
+from constants import categories, all_categories
 import pandas as pd
 
 
@@ -11,16 +11,11 @@ def change_xlsx_to_csv(name):
         ["First Activity", "Second Activity", "Governmental Law", "Best Practice", "Business Rule", "Law of Nature"]]
     df.to_csv(f'{name}.csv', sep=";", index=False)
 
-
-def calculate_stats(truth_file: str, generated_file: str, consensus: bool = False, method: str = "normal"):
-    total_tp = 0
-    total_fp = 0
-    total_fn = 0
-    total_tn = 0
-    cats_count = {"Governmental Law": {"tp": 0, "fp": 0, "fn": 0, "tn": 0},
-                  "Best Practice": {"tp": 0, "fp": 0, "fn": 0, "tn": 0},
-                  "Business Rule": {"tp": 0, "fp": 0, "fn": 0, "tn": 0},
-                  "Law of Nature": {"tp": 0, "fp": 0, "fn": 0, "tn": 0}}
+def calculate_stats(truth_file: str, generated_file: str, method: str = "normal"):
+    cats_count = {"Governmental Law": {"tp": 0, "fp": 0, "fn": 0, "tn": 0, "precision": 0, "recall": 0, "F1-Score": 0},
+                  "Best Practice": {"tp": 0, "fp": 0, "fn": 0, "tn": 0, "precision": 0, "recall": 0, "F1-Score": 0},
+                  "Business Rule": {"tp": 0, "fp": 0, "fn": 0, "tn": 0, "precision": 0, "recall": 0, "F1-Score": 0},
+                  "Law of Nature": {"tp": 0, "fp": 0, "fn": 0, "tn": 0, "precision": 0, "recall": 0, "F1-Score": 0}}
     with open(truth_file, 'r', encoding='utf-8') as f, open(generated_file, 'r', encoding='ISO-8859-1') as g:
         if not f or not g:
             print("File not found")
@@ -38,61 +33,53 @@ def calculate_stats(truth_file: str, generated_file: str, consensus: bool = Fals
             # if len(truth) != len(generated):
             #     print(f"Line {count} has different number of columns")
             #     return
+
+            # check if we compare the same pair of activities
             if truth[0] != generated[0]:
                 print(f"First activity is different in line {count}")
                 return
             if truth[1] != generated[1]:
                 print(f"Second activity is different in line {count}")
                 return
+            
+            # compute confusion matrix values for each category
             for i in range(2, len(all_categories) + 2):
+                # check if both the generated result and the ground truth classify the pair of activities in the current category i (True Positives)
                 if (truth[i] != "" and truth[i] != "-") and (generated[i] != "" and generated[i] != "-"):
-                    total_tp += 1
                     cats_count[all_categories[i - 2]]["tp"] += 1
+                # check if both the generated result and the ground truth did not classify the pair of activities as the current category i (True Negatives)
                 elif (truth[i] == "" or truth[i] == "-") and (generated[i] == "" or generated[i] == "-"):
-                    total_tn += 1
                     cats_count[all_categories[i - 2]]["tn"] += 1
+                # check if the generated result did not classify the pair of activities as the current category i but the truth did (False Negatives)
                 elif (truth[i] != "" and truth[i] != "-") and (generated[i] == "" or generated[i] == "-"):
-                    total_fn += 1
                     cats_count[all_categories[i - 2]]["fn"] += 1
+                # check if the truth did not classify the pair of activities as the current category i but the generated result did (False Positives)
                 elif (truth[i] == "" or truth[i] == "-") and (generated[i] != "" and generated[i] != "-"):
-                    total_fp += 1
                     cats_count[all_categories[i - 2]]["fp"] += 1
-        print(f"TP: {total_tp}")
-        print(f"FN: {total_fn}")
-        print(f"FP: {total_fp}")
-        print(f"TN: {total_tn}")
-        print(f"Precision: {precision(total_tp, total_fp):.3f}")
-        print(f"Recall: {recall(total_tp, total_fn):.3f}")
-        print(
-            f"F1-score: {f1_score(total_tp, total_fp, total_fn):.3f}")
-        for cat in all_categories:
-            print("-" * 30)
-            print(f"Category: {cat}")
-            print(f"TP: {cats_count[cat]['tp']}")
-            print(f"FN: {cats_count[cat]['fn']}")
-            print(f"FP: {cats_count[cat]['fp']}")
-            print(f"TN: {cats_count[cat]['tn']}")
-            print(f"Precision: {precision(cats_count[cat]['tp'], cats_count[cat]['fp']):.3f}")
-            print(f"Recall: {recall(cats_count[cat]['tp'], cats_count[cat]['fn']):.3f}")
-            print(
-                f"F1-score: {f1_score(cats_count[cat]['tp'], cats_count[cat]['fp'], cats_count[cat]['fn']):.3f}")
+
+        # compute precision, recall, and F1-score for each category
+        for category in cats_count.keys():
+            cats_count[category]["precision"] = precision(cats_count[category]["tp"], cats_count[category]["fp"])
+            cats_count[category]["recall"] = recall(cats_count[category]["tp"], cats_count[category]["fn"])
+            cats_count[category]["F1-Score"] = f1_score(cats_count[category]["tp"], cats_count[category]["fp"], cats_count[category]["fn"])
+        
+        # compute average precision, recall, and F1-Score for the categories best practice, governmental law, and business rule
+        average_metrics = {"precision": 0, "recall": 0, "F1-Score": 0}
+        for metric in average_metrics:
+            average = 0
+            for category in categories:
+                average += cats_count[category][metric] 
+            average_metrics[metric] = average / len(average_metrics)
 
         pathlib.Path("stats").mkdir(parents=True, exist_ok=True)
         # if consensus:
         #     file_name = f"stats/consensus-{pathlib.Path(truth_file).stem}-{pathlib.Path(generated_file).stem}.csv"
         # else:
-        file_name = f"stats/{method}-{pathlib.Path(truth_file).stem}-{pathlib.Path(generated_file).parent.name}-{pathlib.Path(generated_file).stem}.csv"
+        file_name = f"./stats/{method}-{pathlib.Path(truth_file).stem}-{pathlib.Path(generated_file).parent.name}-{pathlib.Path(generated_file).stem}.csv"
+        print(file_name)
         with open(file_name, "w") as stats_file:
             stats_file.write("Category,TP,FN,FP,TN,Precision,Recall,F1\n")
-            stats_file.write("All,")
-            stats_file.write(f"{total_tp},")
-            stats_file.write(f"{total_fn},")
-            stats_file.write(f"{total_fp},")
-            stats_file.write(f"{total_tn},")
-            stats_file.write(f"{precision(total_tp, total_fp):.3f},")
-            stats_file.write(f"{recall(total_tp, total_fn):.3f},")
-            stats_file.write(
-                f"{f1_score(total_tp, total_fp, total_fn):.3f}\n")
+            
             for cat in all_categories:
                 stats_file.write(f"{cat},")
                 stats_file.write(f"{cats_count[cat]['tp']},")
@@ -103,7 +90,16 @@ def calculate_stats(truth_file: str, generated_file: str, consensus: bool = Fals
                 stats_file.write(f"{recall(cats_count[cat]['tp'], cats_count[cat]['fn']):.3f},")
                 stats_file.write(
                     f"{f1_score(cats_count[cat]['tp'], cats_count[cat]['fp'], cats_count[cat]['fn']):.3f}\n")
-
+            
+            stats_file.write("Average (without law of nature),")
+            stats_file.write(f"-,")
+            stats_file.write(f"-,")
+            stats_file.write(f"-,")
+            stats_file.write(f"-,")
+            stats_file.write(f"{average_metrics["precision"]:.3f},")
+            stats_file.write(f"{average_metrics["recall"]:.3f},")
+            stats_file.write(
+                f"{average_metrics["F1-Score"]:.3f}\n")
 
 def precision(tp: int, fp: int):
     try:
@@ -127,3 +123,7 @@ def f1_score(tp: int, fp: int, fn: int):
     except ZeroDivisionError:
         print("No positive cases or predictions")
         return 1.000
+
+# Example usage
+if __name__ == '__main__':
+    calculate_stats('./thesis_process/truth.csv', './thesis_process/results/vanilla/rag/claude-3-5-haiku-latest/thesis_process-14012025-224724.csv', method='vanilla')
