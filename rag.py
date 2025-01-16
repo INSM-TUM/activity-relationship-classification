@@ -5,6 +5,10 @@ import replicate
 from textsplitter import textsplitter
 from flashrank import Ranker, RerankRequest
 
+import logging
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 
 class Rag:
     def __init__(self, collection_name: str):

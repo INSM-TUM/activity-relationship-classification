@@ -17,31 +17,13 @@ from datetime import datetime
 
 from constants import *
 from rag import Rag
+import prompts
 
 load_dotenv()
 
 def log(message: str):
-    print(f'[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] '+message)
+    print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '] '+message)
 
-def _create_first_message(activity1: str, activity2: str, context) -> list:
-    return [{"role": "user", "content": f"Apart from the law of nature, which of the categories best describes the contextual origin of why {activity1} occurs before {activity2}? Explain why you chose this category and not another one. If none of the categories apply to the relationship, explain why it is not an instance of any of the categories. After discussing the contextual origin, discuss if the ordering is due to a law of nature.\nContext:\n{context}"}]
-
-def _create_second_message() -> list:
-    return [
-        {
-            "role": "user",
-            "content": textwrap.dedent("""Structure your answer in the following format without any additional text, and replace the placeholders with the correct values:
-                {
-                    "First Activity": "-",
-                    "Second Activity": "-",
-                    "Category": "-",
-                    "Justification": "-",
-                    "Law of Nature": "-"
-                }
-
-                If none of the three contextual origin categories apply to the relationship, put a dash in the Category and Justification fields and do not include any other text for justifying your decision. Otherwise, put the category you chose in the "Category" field, the justification for your choice in the "Justification" field. In the "Law of Nature" field, if the answer is yes, then you should put justification in the value, if it is no, then only put a single dash.""")
-        }
-    ]
 
 class Classifier:
     """
@@ -60,7 +42,8 @@ class Classifier:
     Methods:
         classify_relationships(): Classifies the relationships between activities.
     """
-    def __init__(self, input_folder: pathlib.Path | str, model: str, method: str, rag: bool, vertexai_project_name: str = None, vertexai_location: str = None):
+    def __init__(self, input_folder: pathlib.Path | str, model: str, method: str, rag: bool, vertexai_project_name: str = None, vertexai_location: str = None, dry_run : bool = False):
+        log('Classifier '+str(locals()))
         if isinstance(input_folder, str):
             input_folder = pathlib.Path(input_folder)
         if not input_folder.exists():
@@ -70,6 +53,7 @@ class Classifier:
         self.platform = get_platform(model)
         self.method = method
         self.is_rag = rag
+        self.dry_run = dry_run
 
         # if not (folder_name / "truth.csv").exists():
         #     raise ValueError("Truth file not found")
@@ -100,42 +84,25 @@ class Classifier:
         self._create_result_path(input_folder)
 
     def _build_system_prompt(self, example_path: pathlib.Path):
-        base_text = textwrap.dedent("""
-        You are an assistant business process re-designer. Your job is to explain the context behind the ordering of a pair of activities, given the pair of activities and the process description, by categorizing the reason of the specific order in zero or one of the three following categories:
-        1- Governmental Law: Rules created and enforced by governmental institutions to regulate business behaviour (i.e. Customer cannot cash a cheque without validating their documents).
-        2- Best Practice: Procedures usually accepted by the organization's staff or industry-wide to be superior to alternatives, but are not required to be followed nor enforced by any stakeholder (i.e. Following up with patients after treatment).
-        3- Business Rule: Rules that are under full jurisdiction of the stakeholders of the process (i.e. organization or suppliers) that can change or discard this rule at their own discretion (i.e. holding regular meetings after starting project).
-    
-        Separate from the other categories, you need to decide if the relationship is due to a law of nature, which is an inviolable relationship where the second activity cannot precede the second activity due to either a deadlock occurring or due to a data (i.e. You cannot reply to a message without receiving it), resource dependency (i.e. You cannot print a document without having paper), or logical dependency from the first activity.""").lstrip("\n")
-
-        vanilla_text = textwrap.dedent("""
-        Structure your answer in the following format without any additional text, and replace the placeholders with the correct values:
-        {
-            "First Activity": "-",
-            "Second Activity": "-",
-            "Category": "-",
-            "Justification": "-",
-            "Law of Nature": "-"
-        }
-        If none of the categories apply to the relationship, put a dash in the Category and Justification fields and do not include any other text for justifying your decision. Otherwise, put the category you chose in the "Category" field, the justification for your choice in the "Justification" field. If the relationship is an instance of a Law of Nature, you should provide justification in the "Law of Nature" field for why the relationship is due to a law of nature, if not, you should put a dash in the field.
-        You will receive the prompt as "What is the relationship between [First Activity] and [Second Activity]?", the first activity always occurs in time before the second activity. Return only the JSON response with no other text outside the JSON.""")
-
-        self.system_prompt = base_text
+        self.system_prompt = prompts.base_text
         if self.method in ["vanilla", "few"]:
-            self.system_prompt += "\n" + vanilla_text
+            self.system_prompt += "\n" + prompts.how_to_format + '\n' + prompts.what_queries
         if self.method in ["few", "few-cot"]:
             with open(example_path, "r", encoding="utf-8") as f:
-                self.system_prompt += "\n" + f.read()
+                example = f.read()
+                self.system_prompt += "\n" + example
 
     def _validate_method(self):
         if self.method not in methods:
             raise ValueError(f"Method {self.method} not supported")
 
     def _initialize_clients(self, vertexai_project_name: str = None, vertexai_location: str = None):
-        if self.platform == Platforms.OPEN_AI:
-            self.openai_client = openai.OpenAI()
+        if self.dry_run:
+            return
+        elif self.platform == Platforms.OPEN_AI:
+            self.client = openai.OpenAI()
         elif self.platform == Platforms.ANTHROPIC:
-            self.claude_client = Anthropic()
+            self.client = Anthropic()
         elif self.platform == Platforms.VERTEX:
             if not vertexai_project_name:
                 raise ValueError("Project name not provided for Vertex AI, must be provided for Vertex AI models")
@@ -143,7 +110,7 @@ class Classifier:
                 raise ValueError("Location not provided for Vertex AI, must be provided for Vertex AI models")
             vertexai.init(project=vertexai_project_name, location=vertexai_location)
         elif self.platform == Platforms.OLLAMA:
-            self.ollama_client = Client(
+            self.client = Client(
                 host='http://localhost:11434', # TODO put URL in env file
                 headers={'Content-Type': 'application/json'}
             )
@@ -157,8 +124,7 @@ class Classifier:
 
     def _create_result_path(self, input_folder: pathlib.Path):
         # (absolute_path / "results").mkdir(parents=True, exist_ok=True)
-        now = datetime.now()
-        dt_string = now.strftime("%d%m%Y-%H%M%S")
+        dt_string = datetime.now().strftime("%d%m%Y-%H%M%S")
         result_file_name = input_folder.name + "-" + dt_string
         folder_name = self.model.replace(":", "-")
         if self.is_rag:
@@ -169,41 +135,45 @@ class Classifier:
             self.result_file = (input_folder / "results" / self.method / folder_name / (result_file_name + ".csv")).open("x")
 
     def _init_rag(self, input_folder: pathlib.Path):
+        log('Initializing RAG')
         self.rag_engine = Rag(input_folder.name)
+        log('Loading embeddings')
         self.rag_engine.load_embeddings(self.process_desc)
 
     def classify_relationships(self):
-        if self.method in ["vanilla", "few"]:
-            self._classify_normal()
-        elif self.method in ["cot", "few-cot"]:
-            self._classify_cot()
+        
+        self._write_result_header()
+        for i in range(2): #TODO /2
+            activity1 = self.activities[i]
+            for j in range(i + 1, 2):
+                activity2 = self.activities[j]
+                context = self._get_context([activity1, activity2])
+                log(f'Classifying "{activity1}"->"{activity2}"')
+
+                if self.method in ["vanilla", "few"]:
+                    parse = self._classify_normal(activity1, activity2, context)
+                elif self.method in ["cot", "few-cot"]:
+                    parse = self._classify_cot(activity1, activity2, context)
+
+                self._write_result_row(parse, activity1, activity2)
+            self.result_file.flush()
 
         # stats.calculate_stats(self.truth_file, self.result_file.name, method=self.method)
 
-    def _classify_normal(self):
-        self._write_result_header()
-        for i in range(len(self.activities)):
-            for j in range(i + 1, len(self.activities)):
-                context = self._get_context([self.activities[i], self.activities[j]])
-                messages = [{"role": "user", "content": f"What is the relationship between {self.activities[i]} and {self.activities[j]}?\nContext:\n{context}"}]
-                parse = self._get_model_response(messages, self.system_prompt)
-                parse = self._parse_response(parse)
-                self._write_result_row(parse, self.activities[i], self.activities[j])
-            self.result_file.flush()
+    def _classify_normal(self, activity1, activity2, context):
+        messages = [{"role": "user", "content": prompts.create_query(activity1, activity2, context)}]
+        parse = self._get_model_response(messages, self.system_prompt)
+        return self._parse_response(parse)
 
-    def _classify_cot(self):
-        self._write_result_header()
-        for i in range(len(self.activities)):
-            for j in range(i + 1, len(self.activities)):
-                context = self._get_context([self.activities[i], self.activities[j]])
-                messages = _create_first_message(self.activities[i], self.activities[j], context)
-                cot = self._get_model_response(messages, self.system_prompt)
-                messages.append({"role": "assistant", "content": cot})
-                messages.extend(_create_second_message())
-                parse = self._get_model_response(messages, self.system_prompt)
-                parse = self._parse_response(parse)
-                self._write_result_row(parse, self.activities[i], self.activities[j])
-            self.result_file.flush()
+    # TODO this mixes prompt chaining an chain of thought
+    def _classify_cot(self, activity1, activity2, context):
+        messages = [{"role": "user", "content": prompts.create_query(activity1, activity2, context)}]
+
+        cot = self._get_model_response(messages, self.system_prompt)
+        messages.append({"role": "assistant", "content": cot})
+        messages.append({"role": "user", "content": prompts.how_to_format})
+        parse = self._get_model_response(messages, self.system_prompt)
+        return self._parse_response(parse)
 
     def _write_result_header(self):
         self.result_file.write("sep=;\nFirst Activity;Second Activity;" + ";".join(categories) + f";{lon}\n")
@@ -214,7 +184,19 @@ class Classifier:
         return self.process_desc
 
     def _get_model_response(self, messages: list, system_prompt : str = None) -> Any:
-        if self.platform == Platforms.OPEN_AI:
+        if self.dry_run :
+            print('====Messages=====')
+            print(messages)
+            print('====system_prompt=====')
+            print(system_prompt)
+            ret = """{
+    "First Activity": "-",
+    "Second Activity": "-",
+    "Category": "-",
+    "Justification": "-",
+    "Law of Nature": "-"
+}"""
+        elif self.platform == Platforms.OPEN_AI:
             ret = self._call_openai(messages, system_prompt)
         elif self.platform == Platforms.ANTHROPIC:
             ret = self._call_anthropic(messages, system_prompt)
@@ -236,7 +218,7 @@ class Classifier:
     def _call_openai(self, messages: list[dict], temperature: float = 0, system_prompt : str = None) -> Any:
         if system_prompt:
             messages.insert(0,{"role": "system", "content": system_prompt})
-        completion = self.openai_client.chat.completions.create(
+        completion = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
             temperature=temperature,
@@ -244,7 +226,7 @@ class Classifier:
         return completion.choices[0].message.content
 
     def _call_anthropic(self, messages: list[dict], temperature: float = 0, system_prompt : str = None) -> Any:
-        completion = self.claude_client.messages.create(
+        completion = self.client.messages.create(
             model=self.model,
             system=system_prompt,
             messages=messages,
@@ -283,15 +265,16 @@ class Classifier:
     
     def _call_ollama(self, messages: list[dict], system_prompt : str = None) -> Any:
 
-        # print('Ill now call ollama')
-        # print(messages)
         if system_prompt:
             messages.insert(0,{"role": "system", "content": system_prompt})
 
-        # print('Messages:'+str(messages))
-        response = self.ollama_client.chat(model='llama3', messages=messages)
-
-        # print(self.model + ": " + response.message.content)
+        response = self.client.chat(
+            model='llama3', 
+            messages=messages,
+            options = {
+                # "num_ctx": 48000
+            },
+        )
         return response.message.content
 
     def _create_history(self, messages: list[dict]) -> list:
@@ -311,11 +294,17 @@ class Classifier:
     def _fix_json(self, response: str) -> dict:
         messages = [{"role": "user", "content": f"Could you check if this JSON string is valid and properly escaped, if not, please fix it and return it to me without any additional text. Make sure it's valid to be parsed in python\n{response}"}]
 
+        print('"Initial response:"' + response)
+
+        print('Messages' + str(messages))
+
         fixed_response = self._get_model_response(messages) # No system prompt!
+
+        print('"Fixed response:"' + fixed_response)
         return json.loads(fixed_response)
 
     def __del__(self):
-        if self.result_file:
+        if hasattr(self, 'result_file'):
             self.result_file.close()
 
 def main():
