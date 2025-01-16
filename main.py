@@ -11,11 +11,17 @@ import vertexai
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from vertexai.generative_models import GenerativeModel, Part, Content
+from ollama import Client
+
+from datetime import datetime
 
 from constants import *
 from rag import Rag
 
 load_dotenv()
+
+def log(message: str):
+    print(f'[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] '+message)
 
 def _create_first_message(activity1: str, activity2: str, context) -> list:
     return [{"role": "user", "content": f"Apart from the law of nature, which of the categories best describes the contextual origin of why {activity1} occurs before {activity2}? Explain why you chose this category and not another one. If none of the categories apply to the relationship, explain why it is not an instance of any of the categories. After discussing the contextual origin, discuss if the ordering is due to a law of nature.\nContext:\n{context}"}]
@@ -54,11 +60,14 @@ class Classifier:
     Methods:
         classify_relationships(): Classifies the relationships between activities.
     """
-    def __init__(self, folder_name: pathlib.Path, model: str, method: str, rag: bool, vertexai_project_name: str = None, vertexai_location: str = None):
-        if not folder_name.exists():
+    def __init__(self, input_folder: pathlib.Path | str, model: str, method: str, rag: bool, vertexai_project_name: str = None, vertexai_location: str = None):
+        if isinstance(input_folder, str):
+            input_folder = pathlib.Path(input_folder)
+        if not input_folder.exists():
             raise ValueError("Folder not found")
 
         self.model = model
+        self.platform = get_platform(model)
         self.method = method
         self.is_rag = rag
 
@@ -66,7 +75,7 @@ class Classifier:
         #     raise ValueError("Truth file not found")
         # self.truth_file = folder_name / "truth.csv"
 
-        activities_path = folder_name / "activities.txt"
+        activities_path = input_folder / "activities.txt"
         if not activities_path.exists():
             raise ValueError("Activities file not found")
         with open(activities_path, "r", encoding="utf-8") as f:
@@ -74,19 +83,21 @@ class Classifier:
 
         self._validate_method()
 
-        example_path = folder_name / "examples.txt"
+        example_path = input_folder / "examples.txt"
         if not example_path.exists() and method in ["few", "few-cot"]:
             raise ValueError("Example file not provided for few-shot learning")
         self._build_system_prompt(example_path)
 
         self._initialize_clients(vertexai_project_name, vertexai_location)
 
-        process_desc_path = folder_name / "desc.txt"
+        process_desc_path = input_folder / "desc.txt"
         if not process_desc_path.exists():
             raise ValueError("Process description file not provided")
         self._load_process_description(process_desc_path)
 
-        self._create_result_path(folder_name)
+        if self.is_rag:
+            self._init_rag(input_folder)
+        self._create_result_path(input_folder)
 
     def _build_system_prompt(self, example_path: pathlib.Path):
         base_text = textwrap.dedent("""
@@ -112,10 +123,7 @@ class Classifier:
         self.system_prompt = base_text
         if self.method in ["vanilla", "few"]:
             self.system_prompt += "\n" + vanilla_text
-            if self.method == "few":
-                with open(example_path, "r", encoding="utf-8") as f:
-                    self.system_prompt += "\n" + f.read()
-        elif self.method in ["few-cot"]:
+        if self.method in ["few", "few-cot"]:
             with open(example_path, "r", encoding="utf-8") as f:
                 self.system_prompt += "\n" + f.read()
 
@@ -124,41 +132,45 @@ class Classifier:
             raise ValueError(f"Method {self.method} not supported")
 
     def _initialize_clients(self, vertexai_project_name: str = None, vertexai_location: str = None):
-        if self.model in models_openai:
+        if self.platform == Platforms.OPEN_AI:
             self.openai_client = openai.OpenAI()
-            self.openai_sys = {"role": "system", "content": self.system_prompt}
-        if self.model in models_anthropic:
+        elif self.platform == Platforms.ANTHROPIC:
             self.claude_client = Anthropic()
-            self.anthropic_sys = self.system_prompt
-        if self.model in models_vertex:
+        elif self.platform == Platforms.VERTEX:
             if not vertexai_project_name:
                 raise ValueError("Project name not provided for Vertex AI, must be provided for Vertex AI models")
             if not vertexai_location:
                 raise ValueError("Location not provided for Vertex AI, must be provided for Vertex AI models")
             vertexai.init(project=vertexai_project_name, location=vertexai_location)
-            self.vertex_sys = self.system_prompt
+        elif self.platform == Platforms.OLLAMA:
+            self.ollama_client = Client(
+                host='http://localhost:11434', # TODO put URL in env file
+                headers={'Content-Type': 'application/json'}
+            )
         if self.model not in all_models:
             raise ValueError("Model not supported")
 
     def _load_process_description(self, process_desc_path: pathlib.Path):
         with open(process_desc_path, encoding="utf8", mode="r") as f:
             process_desc = f.read()
-            self.context = process_desc
+            self.process_desc = process_desc
 
-    def _create_result_path(self, absolute_path: pathlib.Path):
+    def _create_result_path(self, input_folder: pathlib.Path):
         # (absolute_path / "results").mkdir(parents=True, exist_ok=True)
         now = datetime.now()
         dt_string = now.strftime("%d%m%Y-%H%M%S")
-        result_file_name = absolute_path.name + "-" + dt_string
+        result_file_name = input_folder.name + "-" + dt_string
         folder_name = self.model.replace(":", "-")
         if self.is_rag:
-            self.rag_engine = Rag(absolute_path.name)
-            self.rag_engine.load_embeddings(self.context)
-            (absolute_path / "results" / self.method / "rag" / folder_name).mkdir(parents=True, exist_ok=True)
-            self.result_file = (absolute_path / "results" / self.method / "rag" / folder_name / (result_file_name + ".csv")).open("x")
+            (input_folder / "results" / self.method / "rag" / folder_name).mkdir(parents=True, exist_ok=True)
+            self.result_file = (input_folder / "results" / self.method / "rag" / folder_name / (result_file_name + ".csv")).open("x")
         else:
-            (absolute_path / "results" / self.method / folder_name).mkdir(parents=True, exist_ok=True)
-            self.result_file = (absolute_path / "results" / self.method / folder_name / (result_file_name + ".csv")).open("x")
+            (input_folder / "results" / self.method / folder_name).mkdir(parents=True, exist_ok=True)
+            self.result_file = (input_folder / "results" / self.method / folder_name / (result_file_name + ".csv")).open("x")
+
+    def _init_rag(self, input_folder: pathlib.Path):
+        self.rag_engine = Rag(input_folder.name)
+        self.rag_engine.load_embeddings(self.process_desc)
 
     def classify_relationships(self):
         if self.method in ["vanilla", "few"]:
@@ -174,7 +186,7 @@ class Classifier:
             for j in range(i + 1, len(self.activities)):
                 context = self._get_context([self.activities[i], self.activities[j]])
                 messages = [{"role": "user", "content": f"What is the relationship between {self.activities[i]} and {self.activities[j]}?\nContext:\n{context}"}]
-                parse = self._get_model_response(messages)
+                parse = self._get_model_response(messages, self.system_prompt)
                 parse = self._parse_response(parse)
                 self._write_result_row(parse, self.activities[i], self.activities[j])
             self.result_file.flush()
@@ -185,10 +197,10 @@ class Classifier:
             for j in range(i + 1, len(self.activities)):
                 context = self._get_context([self.activities[i], self.activities[j]])
                 messages = _create_first_message(self.activities[i], self.activities[j], context)
-                cot = self._get_model_response(messages)
+                cot = self._get_model_response(messages, self.system_prompt)
                 messages.append({"role": "assistant", "content": cot})
                 messages.extend(_create_second_message())
-                parse = self._get_model_response(messages)
+                parse = self._get_model_response(messages, self.system_prompt)
                 parse = self._parse_response(parse)
                 self._write_result_row(parse, self.activities[i], self.activities[j])
             self.result_file.flush()
@@ -199,19 +211,20 @@ class Classifier:
     def _get_context(self, activities: list) -> list | str:
         if self.is_rag:
             return self.rag_engine.return_related(activities)
-        return self.context
+        return self.process_desc
 
-    def _get_model_response(self, messages: list) -> Any:
-        if hasattr(self, "openai_client"):
-            messages.insert(0, self.openai_sys)
-            ret = self._call_openai(messages)
-        elif hasattr(self, "claude_client"):
-            ret = self._call_anthropic(messages)
-        elif hasattr(self, "vertex_sys"):
-            ret = self._call_vertex(messages)
+    def _get_model_response(self, messages: list, system_prompt : str = None) -> Any:
+        if self.platform == Platforms.OPEN_AI:
+            ret = self._call_openai(messages, system_prompt)
+        elif self.platform == Platforms.ANTHROPIC:
+            ret = self._call_anthropic(messages, system_prompt)
+        elif self.platform == Platforms.VERTEX:
+            ret = self._call_vertex(messages, system_prompt)
+        elif self.platform == Platforms.OLLAMA:
+            ret = self._call_ollama(messages, system_prompt)
         else:
             raise ValueError("Model not supported")
-        print(ret + "\n" + "-" * 100)
+        # print(ret + "\n" + "-" * 100)
         return ret
 
     def _write_result_row(self, parse: dict[str, str], activity1: str, activity2: str):
@@ -220,7 +233,9 @@ class Classifier:
             self.result_file.write(f"{parse.get('Justification', '-') if category == parse.get('Category') else '-'};")
         self.result_file.write(f"{parse.get('Law of Nature')}\n")
 
-    def _call_openai(self, messages: list[dict], temperature: float = 0) -> Any:
+    def _call_openai(self, messages: list[dict], temperature: float = 0, system_prompt : str = None) -> Any:
+        if system_prompt:
+            messages.insert(0,{"role": "system", "content": system_prompt})
         completion = self.openai_client.chat.completions.create(
             model=self.model,
             messages=messages,
@@ -228,20 +243,20 @@ class Classifier:
         )
         return completion.choices[0].message.content
 
-    def _call_anthropic(self, messages: list[dict], temperature: float = 0) -> Any:
+    def _call_anthropic(self, messages: list[dict], temperature: float = 0, system_prompt : str = None) -> Any:
         completion = self.claude_client.messages.create(
             model=self.model,
-            system=self.anthropic_sys,
+            system=system_prompt,
             messages=messages,
             temperature=temperature,
             max_tokens=1024
         )
         return completion.content[0].text
 
-    def _call_vertex(self, messages: list[dict], temperature: float = 0) -> Any:
+    def _call_vertex(self, messages: list[dict], temperature: float = 0, system_prompt : str = None) -> Any:
         model_gen = GenerativeModel(
             model_name=self.model,
-            system_instruction=[self.vertex_sys]
+            system_instruction=[system_prompt]
         )
         chat = model_gen.start_chat() if len(messages) == 1 else model_gen.start_chat(history=self._create_history(messages))
         for _ in range(5):
@@ -265,6 +280,19 @@ class Classifier:
         else:
             raise Exception("Failed to send message to vertex AI")
         return response.text
+    
+    def _call_ollama(self, messages: list[dict], system_prompt : str = None) -> Any:
+
+        # print('Ill now call ollama')
+        # print(messages)
+        if system_prompt:
+            messages.insert(0,{"role": "system", "content": system_prompt})
+
+        # print('Messages:'+str(messages))
+        response = self.ollama_client.chat(model='llama3', messages=messages)
+
+        # print(self.model + ": " + response.message.content)
+        return response.message.content
 
     def _create_history(self, messages: list[dict]) -> list:
         history = []
@@ -283,15 +311,7 @@ class Classifier:
     def _fix_json(self, response: str) -> dict:
         messages = [{"role": "user", "content": f"Could you check if this JSON string is valid and properly escaped, if not, please fix it and return it to me without any additional text. Make sure it's valid to be parsed in python\n{response}"}]
 
-        if hasattr(self, "openai_sys"):
-            fixed_response = self._call_openai(messages)
-        elif hasattr(self, "claude_client"):
-            fixed_response = self._call_anthropic(messages)
-        elif hasattr(self, "vertex_sys"):
-            fixed_response = self._call_vertex(messages)
-        else:
-            raise ValueError("Model not supported")
-
+        fixed_response = self._get_model_response(messages) # No system prompt!
         return json.loads(fixed_response)
 
     def __del__(self):
@@ -330,7 +350,7 @@ def main():
     args = parser.parse_args()
 
     folder_path = pathlib.Path(args.path) / args.folder_name
-    cls = Classifier(folder_name=folder_path, model=args.model, method=args.method, rag=args.rag,
+    cls = Classifier(input_folder=folder_path, model=args.model, method=args.method, rag=args.rag,
                      vertexai_project_name=args.vertexai_project_name, vertexai_location=args.vertexai_location)
     cls.classify_relationships()
 
