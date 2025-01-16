@@ -87,6 +87,8 @@ class Classifier:
         self.system_prompt = prompts.base_text
         if self.method in ["vanilla", "few"]:
             self.system_prompt += "\n" + prompts.how_to_format + '\n' + prompts.what_queries
+        if self.method in ["cot"]:
+            self.system_prompt += "\n" + prompts.cot_queries
         if self.method in ["few", "few-cot"]:
             with open(example_path, "r", encoding="utf-8") as f:
                 example = f.read()
@@ -163,6 +165,7 @@ class Classifier:
         return self._parse_response(parse)
 
     # TODO this mixes prompt chaining an chain of thought
+    # proposed fix of kerstin: adding the cot prompt in the self.system_prompt and being more explanatory in the examples
     def _classify_cot(self, activity1, activity2, context):
         messages = [{"role": "user", "content": prompts.create_query(activity1, activity2, context)}]
 
