@@ -34,9 +34,9 @@ The Activity Relationship Classifier is a Python-based tool designed to classify
     ```
 
 3. Set up platform specific accounts etc. Please be aware that for most of them, costs may arise, although there are free trials.
-    *  [If you want to make use of RAG] Create an account at https://replicate.com and generate a token
-    *  [If you want to run the Anthropic models] Create an account at https://console.anthropic.com and generate a token
-    *  [If you want to run the OpenAI models] Create an account at https://platform.openai.com
+    *  [If you want to make use of RAG] Create an account at https://replicate.com and generate an access token
+    *  [If you want to run the Anthropic models] Create an account at https://console.anthropic.com and generate an access token
+    *  [If you want to run the OpenAI models] Create an account at https://platform.openai.com and generate an access token
     *  [If you want to run the VertexAI models] Setup Authentication for VertexAI by following [this guide](https://cloud.google.com/vertex-ai/generative-ai/docs/start/quickstarts/quickstart-multimodal#python).
     *  [If you want to run the OLLamma models] Download Ollama at https://ollama.com/
 
@@ -80,8 +80,8 @@ The input folder **must** contain the following files. An example is provided in
 - `desc.txt`: A text file containing the process description.
 - `activities.txt`: A text file containing the list of activities, one per line.
 - `truth.csv`: A CSV file containing the ground truth for evaluation. Check the `thesis_process` folder for the structure.
-- `examples (few).txt`: (Only necessary for methods with few shot learning) A text file containing 3-5 examples of correct labelling for few shot learning, the answer to the prompts should be JSON formatted
-- `examples (few-cot).txt`: (Only necessary for methods with few shot learning) A text file containing 3-5 examples of correct labelling for few shot learning, the answer to the prompts should be JSON formatted for `few` and in natural language for `few-cot`.
+- `examples (few).txt`: (Only necessary when running few shot learning) A text file containing 3-5 examples of correct labelling for few shot learning, the answer to the prompts should be JSON formatted. 
+- `examples (few-cot).txt`: (Only necessary when running few shot learning + chain of thought) A text file containing 3-5 examples of correct labelling for few shot learning, the answer to the prompts should be in natural language including reasoning for decisions.
 
 ### Output
 
