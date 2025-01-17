@@ -12,7 +12,7 @@ class Platforms(Enum):
 models = {
     Platforms.OPEN_AI : ["gpt-3.5-turbo", "gpt-4o", "gpt-4o-mini"],
     Platforms.ANTHROPIC : ["claude-3-5-haiku-latest", "claude-3-5-sonnet-20240620"],
-    Platforms.VERTEX : ["gemini-1.5-flash-001", "gemini-1.5-pro-001", "gemini-experimental"],
+    Platforms.VERTEX : ["gemini-1.5-flash-001", "gemini-1.5-pro-001", "gemini-flash-experimental"],
     Platforms.OLLAMA : ["llama3"]
 }
 

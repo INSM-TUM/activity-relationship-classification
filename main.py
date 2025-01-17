@@ -42,7 +42,7 @@ class Classifier:
     Methods:
         classify_relationships(): Classifies the relationships between activities.
     """
-    def __init__(self, input_folder: pathlib.Path | str, model: str, method: str, rag: bool, dry_run : bool = False):
+    def __init__(self, input_folder: pathlib.Path | str, model: str, method: str, rag: bool, dry_run : bool = False, output_folder: pathlib.Path | str = None):
         log('Classifier '+str(locals()))
         if isinstance(input_folder, str):
             input_folder = pathlib.Path(input_folder)
@@ -67,7 +67,7 @@ class Classifier:
 
         self._validate_method()
 
-        example_path = input_folder / "examples.txt"
+        example_path = input_folder / f"examples ({method}).txt"
         if not example_path.exists() and method in ["few", "few-cot"]:
             raise ValueError("Example file not provided for few-shot learning")
         self._build_system_prompt(example_path)
@@ -81,13 +81,16 @@ class Classifier:
 
         if self.is_rag:
             self._init_rag(input_folder)
-        self._create_result_path(input_folder)
+        
+        output_folder = output_folder or (input_folder / "results") 
+        output_folder = pathlib.Path(output_folder)
+        self._create_result_path(input_folder, output_folder)
 
     def _build_system_prompt(self, example_path: pathlib.Path):
         self.system_prompt = prompts.base_text
         if self.method in ["vanilla", "few"]:
             self.system_prompt += "\n" + prompts.how_to_format + '\n' + prompts.what_queries
-        if self.method in ["cot"]:
+        if self.method in ["cot", "few-cot"]:
             self.system_prompt += "\n" + prompts.cot_queries
         if self.method in ["few", "few-cot"]:
             with open(example_path, "r", encoding="utf-8") as f:
@@ -126,11 +129,10 @@ class Classifier:
             process_desc = f.read()
             self.process_desc = process_desc
 
-    def _create_result_path(self, input_folder: pathlib.Path):
+    def _create_result_path(self, input_folder: pathlib.Path, output_folder: pathlib.Path):
         # (absolute_path / "results").mkdir(parents=True, exist_ok=True)
         dt_string = datetime.now().strftime("%d%m%Y-%H%M%S")
         result_file_name = f"{input_folder.name}-{dt_string}--{self.model.replace(':', '-')}-{self.method}{'_rag' if self.is_rag else ''}"
-        output_folder = input_folder / "results" 
         output_folder.mkdir(parents=True, exist_ok=True)
         self.result_file = (output_folder / (result_file_name + ".csv")).open("x")
 
@@ -140,10 +142,10 @@ class Classifier:
 
     def classify_relationships(self):
         
-        self._write_result_header()
-        for i in range(2): #TODO /2
+        self._write_result_header()        
+        for i in range(len(self.activities)):
             activity1 = self.activities[i]
-            for j in range(i + 1, 2):
+            for j in range(i + 1, len(self.activities)):
                 activity2 = self.activities[j]
                 context = self._get_context([activity1, activity2])
                 log(f'Classifying "{activity1}"->"{activity2}"')
@@ -168,9 +170,8 @@ class Classifier:
     # proposed fix of kerstin: adding the cot prompt in the self.system_prompt and being more explanatory in the examples
     def _classify_cot(self, activity1, activity2, context):
         messages = [{"role": "user", "content": prompts.create_query(activity1, activity2, context)}]
-
-        cot = self._get_model_response(messages, self.system_prompt)
-        messages.append({"role": "assistant", "content": cot})
+        cot_response = self._get_model_response(messages, self.system_prompt)
+        messages.append({"role": "assistant", "content": cot_response})
         messages.append({"role": "user", "content": prompts.how_to_format})
         parse = self._get_model_response(messages, self.system_prompt)
         return self._parse_response(parse)
@@ -255,7 +256,7 @@ class Classifier:
                 )
             except Exception as e:
                 print(e)
-                time.sleep(15)
+                time.sleep(15) # Vertex AI has a request limit of 5/minute, so waiting 4 times 15 seconds should solve the problem
                 continue
             else:
                 break

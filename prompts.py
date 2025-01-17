@@ -17,7 +17,7 @@ how_to_format = """Structure your answer in the following format without any add
     "Law of Nature": "-"
 }
 
-If none of the three contextual origin categories apply to the relationship, put a dash in the Category and Justification fields and do not include any other text for justifying your decision. Otherwise, put the category you chose in the "Category" field, the justification for your choice in the "Justification" field. In the "Law of Nature" field, if the answer is yes, then you should put justification in the value, if it is no, then only put a single dash."""
+If none of the three contextual origin categories apply to the relationship, put a dash in both the Category and Justification fields and do not include any other text for justifying your decision. Otherwise, put the category you chose in the "Category" field, the justification for your choice in the "Justification" field. In the "Law of Nature" field, if the answer is yes, then you should put justification in the value, if it is no, then only put a single dash."""
 
 what_queries = """You will receive the prompt as "which of the categories best describes the contextual origin of why [First Activity]  occurs before [Second Activity]?", the first activity always occurs in time before the second activity. Return only the JSON response with no other text outside the JSON."""
 

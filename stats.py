@@ -4,7 +4,7 @@ from constants import categories, all_categories
 
 
 
-def calculate_stats(truth_file: str, generated_file: str, method: str = "normal"):
+def calculate_stats(truth_file: str, generated_file: str, output_folder: pathlib.Path | str):
     cats_count = {"Governmental Law": {"tp": 0, "fp": 0, "fn": 0, "tn": 0, "precision": 0, "recall": 0, "F1-Score": 0},
                   "Best Practice": {"tp": 0, "fp": 0, "fn": 0, "tn": 0, "precision": 0, "recall": 0, "F1-Score": 0},
                   "Business Rule": {"tp": 0, "fp": 0, "fn": 0, "tn": 0, "precision": 0, "recall": 0, "F1-Score": 0},
@@ -64,11 +64,13 @@ def calculate_stats(truth_file: str, generated_file: str, method: str = "normal"
                 average += cats_count[category][metric] 
             average_metrics[metric] = average / len(average_metrics)
 
-        pathlib.Path("stats").mkdir(parents=True, exist_ok=True)
+        output_folder = output_folder or pathlib.Path(truth_file).parent / 'stats'
+        output_folder = pathlib.Path(output_folder)
+        output_folder.mkdir(parents=True, exist_ok=True)
         # if consensus:
         #     file_name = f"stats/consensus-{pathlib.Path(truth_file).stem}-{pathlib.Path(generated_file).stem}.csv"
         # else:
-        file_name = pathlib.Path(truth_file).parent / 'stats' / f"{pathlib.Path(generated_file).stem}.csv"
+        file_name = output_folder / f"{pathlib.Path(generated_file).stem}.csv"
         print(file_name)
         with open(file_name, "w") as stats_file:
             stats_file.write("Category,TP,FN,FP,TN,Precision,Recall,F1\n")
