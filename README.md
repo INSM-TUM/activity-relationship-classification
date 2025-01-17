@@ -92,8 +92,8 @@ For an example usage, refer to [`experiments.py`](./experiments.py)
 ### Code Files
 - `main.py`: Main script to run the classifier.
 - `prompts.py`: Defines the text blocks from which used prompts are built.
-- `experiments.py`: Utility method to calculate classifier performance.
-- `stats.py`: Contains functions for calculating evaluation metrics.
+- `stats.py`: Contains stility methods to calculate classifier performance.
+- `experiments.py`: Demonstrates how to structuredly use generate stats over set of models and methods
 - `constants.py`: Contains constants used in the project.
 - `rag.py`: Contains the RAG implementation (if applicable).
 
