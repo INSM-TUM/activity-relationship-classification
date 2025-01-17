@@ -24,8 +24,8 @@ The Activity Relationship Classifier is a Python-based tool designed to classify
 
 1. Clone the repository:
     ```sh
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone git@github.com:INSM-TUM/activity-relationship-classification.git
+    cd activity-relationship-classification
     ```
 
 2. Install the required packages:
