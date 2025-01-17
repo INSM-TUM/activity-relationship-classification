@@ -1,6 +1,0 @@
-Category,TP,FN,FP,TN,Precision,Recall,F1
-All,29,15,11,93,0.725,0.659,0.690
-Governmental Law,6,2,4,25,0.600,0.750,0.667
-Best Practice,12,1,6,18,0.667,0.923,0.774
-Business Rule,9,7,1,20,0.900,0.562,0.692
-Law of Nature,2,5,0,30,1.000,0.286,0.444
