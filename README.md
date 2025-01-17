@@ -116,4 +116,4 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Contact
 
-For any questions or issues, please contact `touqanzahi@gmail.com`.
+For any questions or issues, please contact Kerstin Andree ([kerstin.andree@tum.de](mailto:kerstin.andree@tum.de)) or Zahi Touqan ([zahi.touqan@tum.de](mailto:zahi.touqan@tum.de)).
