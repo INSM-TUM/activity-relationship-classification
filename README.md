@@ -105,6 +105,7 @@ For an example usage, refer to [`experiments.py`](./experiments.py)
 ### Example Data
 - `thesis_process/`: Contains example files for the thesis registration and submission process used in the paper.
     - `interview_transcripts/` : Contains the interview transcripts used as basis for the process description, as described in the paper.
+- `thesis_process_paper_results/`: Contains the results of running experiment.py on the thesis process with all methods and models. These are the numbers referenced in the paper.
 - `airport_process/`: Contains example files for an airport check-in process used for development purposes.
 
 ## License
