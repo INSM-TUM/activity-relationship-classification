@@ -1,0 +1,38 @@
+sep=;
+First Activity;Second Activity;Governmental Law;Best Practice;Business Rule;Law of Nature
+Search for a topic;Conduct informal meeting to explain topic;-;While there are no rules enforcing it, the context shows across multiple professors that it is common for students to first search for topics and then have a meeting to discuss them. This suggests an established practice within the university or department.;-;Yes, data dependency. Students and professors need data from the topic search to have a meaningful discussion in the meeting.
+Search for a topic;Write and submit proposal;-;-;-;-
+Search for a topic;Get registered by chair on Koinon;-;While some departments might expect students to consult with the student service center or the chair before registering a topic on Koinon, it's not a mandatory requirement. This suggests it's a recommended practice rather than a rule.;-;Data dependency: The chair cannot register a student for a topic on Koinon without the student having searched for a topic beforehand.
+Search for a topic;Student accept thesis on Koinon;-;-;-;Data dependency - Students cannot accept a thesis topic before they have searched for one and made a decision
+Search for a topic;Start writing thesis;-;-;-;You cannot start writing a thesis without having a topic, as the topic determines the content of the thesis.
+Search for a topic;Conduct regular catch-up meetings;-;-;-;-
+Search for a topic;Submit thesis on Koinon;-;-;-;-
+Search for a topic;Present thesis in Colloquium;-;-;The university, as the stakeholder of the process, has set an internal rule that the colloquium must happen after the thesis submission. They have full control over this rule and can change it at their discretion.;Yes, logical dependency from the first activity. You cannot present a thesis that has not been researched yet.
+Conduct informal meeting to explain topic;Write and submit proposal;-;-;-;-
+Conduct informal meeting to explain topic;Get registered by chair on Koinon;-;The Student Service Center suggests that students have an informal meeting to discuss the topic before registration, indicating a preferred procedure but not an enforced rule.;-;Data dependency - The chair cannot register the student on Koinon for a specific topic without the topic being agreed upon in the meeting.
+Conduct informal meeting to explain topic;Student accept thesis on Koinon;-;-;-;-
+Conduct informal meeting to explain topic;Start writing thesis;-;-;-;-
+Conduct informal meeting to explain topic;Conduct regular catch-up meetings;-;-;-;-
+Conduct informal meeting to explain topic;Submit thesis on Koinon;-;-;-;-
+Conduct informal meeting to explain topic;Present thesis in Colloquium;-;-;-;-
+Write and submit proposal;Get registered by chair on Koinon;-;-;The text states that "the student starts to write the proposal if the chair requires it", implying that it is up to the chair to decide whether or not a proposal is required. This means that the rule is not mandated by any external entity and is therefore a business rule.;-
+Write and submit proposal;Student accept thesis on Koinon;-;While the text does not explicitly mention that a proposal needs to be written and submitted before the student can accept the thesis on Koinon, it is implied that the proposal, if required, is part of the process of reaching an agreement between the student and supervisor before the thesis is registered on Koinon. The phrase 'So let's say now that the student and the supervisor both agree, they either write a proposal if it's required or they do not if it's not required, and now the advisor uses Koinon to register the thesis' suggests that the proposal is part of the initial agreement process, which would naturally precede the student formally accepting the thesis on Koinon. Therefore, it is considered a best practice within the described context.;-;-
+Write and submit proposal;Start writing thesis;-;-;-;-
+Write and submit proposal;Conduct regular catch-up meetings;-;-;-;-
+Write and submit proposal;Submit thesis on Koinon;-;From the text, it is implied that submitting a proposal is suggested by the student service center, but not required. It is generally considered a best practice to have a proposal reviewed before starting work on a thesis.;-;Yes, logical dependency -  A thesis cannot be submitted before it is written, and a proposal is usually written before a thesis.
+Write and submit proposal;Present thesis in Colloquium;-;-;-;The student cannot present a thesis that has not been written yet
+Get registered by chair on Koinon;Student accept thesis on Koinon;-;-;-;Data dependency
+Get registered by chair on Koinon;Start writing thesis;-;-;The Student Service Center suggests that students inquire about thesis application before registering on Koinon, implying an internal guideline rather than an external rule. The supervisor's uncertainty about students starting writing before registration further suggests flexibility in the process.;-
+Get registered by chair on Koinon;Conduct regular catch-up meetings;-;-;-;-
+Get registered by chair on Koinon;Submit thesis on Koinon;-;-;The university has set up a business process where the chair registers the student on Koinon before the student can submit their thesis. This rule is not mandated by any law or regulation, and the university can change this process at their discretion.;Data dependency: The student cannot submit their thesis on Koinon without being registered first.
+Get registered by chair on Koinon;Present thesis in Colloquium;-;-;-;-
+Student accept thesis on Koinon;Start writing thesis;-;-;-;-
+Student accept thesis on Koinon;Conduct regular catch-up meetings;-;-;-;-
+Student accept thesis on Koinon;Submit thesis on Koinon;-;-;-;-
+Student accept thesis on Koinon;Present thesis in Colloquium;-;-;-;-
+Start writing thesis;Conduct regular catch-up meetings;-;The context describes regular meetings as a common practice by supervisors to ensure students are on track with their thesis, but it's not a university rule.;-;-
+Start writing thesis;Submit thesis on Koinon;-;-;-;-
+Start writing thesis;Present thesis in Colloquium;The university's examination regulations mandate that the colloquium must happen after the thesis submission. This regulation is a rule enforced by the university, a governmental institution, making it a Governmental Law.;-;-;You cannot present a thesis that has not been written yet
+Conduct regular catch-up meetings;Submit thesis on Koinon;-;-;-;-
+Conduct regular catch-up meetings;Present thesis in Colloquium;-;-;-;-
+Submit thesis on Koinon;Present thesis in Colloquium;The university's examination regulations mandate that the colloquium must happen after the thesis submission.;-;-;Data dependency - One cannot present a thesis that has not yet been submitted.
