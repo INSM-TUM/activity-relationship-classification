@@ -103,8 +103,9 @@ For an example usage, refer to [`experiments.py`](./experiments.py)
 - `rag.py`: Contains the RAG implementation (if applicable).
 
 ### Example Data
-- `thesis_process/`: Contains example files for the thesis registration and submission process.
+- `thesis_process/`: Contains example files for the thesis registration and submission process used in the paper.
     - `interview_transcripts/` : Contains the interview transcripts used as basis for the process description, as described in the paper.
+- `airport_process/`: Contains example files for an airport check-in process used for development purposes.
 
 ## License
 

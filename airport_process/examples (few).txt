@@ -1,0 +1,36 @@
+Examples:
+What is the relationship between Scan Ticket and Change Number of Bags?
+{
+    "First Activity": "Scan Ticket",
+    "Second Activity": "Change Number of Bags",
+    "Category": "-",
+    "Justification": "-",
+    "Law of Nature": "The number of bags can only be changed if the previous number of bags is known. (Data dependency)"
+}
+
+What is the relationship between Scan Ticket and Weigh Luggage?
+{
+    "First Activity": "Scan Ticket",
+    "Second Activity": "Weigh Luggage",
+    "Category": "Best Practice",
+    "Justification": "It is more efficient to check the ticket first. Without a ticket, it is not necessary to weigh the luggage.",
+    "Law of Nature": "-"
+}
+
+What is the relationship between Change number of bags and Change Seat?
+{
+    "First Activity": "Change number of bags",
+    "Second Activity": "Change Seat",
+    "Category": "-",
+    "Justification": "-",
+    "Law of Nature": "-"
+}
+
+What is the relationship between Check-in luggage and Load luggage?
+{
+    "First Activity": "Check-in luggage",
+    "Second Activity": "Load luggage",
+    "Category": "Business Rule",
+    "Justification": "Only checked in luggage should be loaded into the aircraft.",
+    "Law of Nature": "Luggage needs to be physically next to the aircraft to load it."
+}

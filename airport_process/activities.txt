@@ -1,0 +1,9 @@
+Scan ticket
+Change number of bags
+Change seat
+Check validity of documents
+Weigh baggage
+Cancel check-in
+Process payment
+Check-in luggage
+Load luggage
