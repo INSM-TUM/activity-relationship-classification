@@ -33,14 +33,16 @@ The Activity Relationship Classifier is a Python-based tool designed to classify
     pip install -r requirements.txt
     ```
 
-3. Set up environment variables by creating a `.env` file in the project root directory and adding your API keys:
+3. [If you want to run the VertexAI models] Setup Authentication for VertexAI by following [this guide](https://cloud.google.com/vertex-ai/generative-ai/docs/start/quickstarts/quickstart-multimodal#python).
+
+4. Set up the necessary environment variables by creating a `.env` file in the project root directory and adding the API keys for the models you want to run:
     ```env
     OPENAI_API_KEY=<your_openai_api_key>
     ANTHROPIC_API_KEY=<your_anthropic_api_key>
     REPLICATE_API_TOKEN=<your_replicate_api_token> # For RAG embeddings but can also be done locally
+    VERTEXAI_PROJECT_NAME=<your vertexai project id>
+    VERTEXAI_LOCATION=<location in which you want requests to vertexai to be processed>
     ```
-
-4. Setup Authentication for VertexAI by following [this guide](https://cloud.google.com/vertex-ai/generative-ai/docs/start/quickstarts/quickstart-multimodal#python).
 
 ## Usage
 
@@ -59,8 +61,6 @@ python main.py --folder_name <folder_name> [--model <model>] [--method <method>]
 - `--method` (string, optional): The method to use for classification. Defaults to `vanilla`. Check `constants.py` for supported methods.
 - `--rag` (optional): Whether to use RAG for context retrieval. Defaults to `True`. Use `--no-rag` to disable.
 - `--path` (string, optional): The path to the parent folder of the folder_name containing the input files. Defaults to the same directory as the Python file.
-- `--vertexai_project_name` (string, optional): The Vertex AI project name.
-- `--vertexai_location` (string, optional): The Vertex AI location.
 
 ### Example
 
@@ -68,26 +68,38 @@ python main.py --folder_name <folder_name> [--model <model>] [--method <method>]
 python main.py --folder_name example_folder --model gpt-4o --method few-cot --no-rag
 ```
 
-## Input Files
+### Input Files
 
-The input folder **must** contain the following files, examples are provided in the `thesis_process` directory in the repository:
+The input folder **must** contain the following files. An example is provided in the `thesis_process` directory in the repository:
 
 - `desc.txt`: A text file containing the process description.
 - `activities.txt`: A text file containing the list of activities, one per line.
 - `truth.csv`: A CSV file containing the ground truth for evaluation. Check the `thesis_process` folder for the structure.
-- `examples.txt`: (Only necessary for methods with few shot learning) A text file containing 3-5 examples of correct labelling for few shot learning, the answer to the prompts should be JSON formatted for `few` and in natural language for `few-cot`.
+- `examples (few).txt`: (Only necessary for methods with few shot learning) A text file containing 3-5 examples of correct labelling for few shot learning, the answer to the prompts should be JSON formatted
+- `examples (few-cot).txt`: (Only necessary for methods with few shot learning) A text file containing 3-5 examples of correct labelling for few shot learning, the answer to the prompts should be JSON formatted for `few` and in natural language for `few-cot`.
 
-## Output
+### Output
 
-The results will be saved in a CSV file in the `results` directory, located inside the path given in the folder_name flag, within a directory corresponding to the model name. The result file name will include the process name and the current timestamp.
+The classifier results will be saved in a CSV file in the `results` directory that is by default stored inside a `results` subfolder of the input folder. The result file name will include the tsted model and method as well as the current timestamp.
 
-## Code Structure
+### Evaluation
 
+To evaluate the performance of the classifier output, use the `calculate_stats` method from the [`stats.py`](./stats.py) file.
+For an example usage, refer to [`experiments.py`](./experiments.py)
+
+## Structure of this Repository
+
+### Code Files
 - `main.py`: Main script to run the classifier.
+- `prompts.py`: Defines the text blocks from which used prompts are built.
+- `experiments.py`: Utility method to calculate classifier performance.
+- `stats.py`: Contains functions for calculating evaluation metrics.
 - `constants.py`: Contains constants used in the project.
 - `rag.py`: Contains the RAG implementation (if applicable).
-- `stats.py`: Contains functions for calculating evaluation metrics.
+
+### Example Data
 - `thesis_process/`: Contains example files for the thesis registration and submission process.
+    - `interview_transcripts/` : Contains the interview transcripts used as basis for the process description, as described in the paper.
 
 ## License
 
