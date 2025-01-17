@@ -33,7 +33,12 @@ The Activity Relationship Classifier is a Python-based tool designed to classify
     pip install -r requirements.txt
     ```
 
-3. [If you want to run the VertexAI models] Setup Authentication for VertexAI by following [this guide](https://cloud.google.com/vertex-ai/generative-ai/docs/start/quickstarts/quickstart-multimodal#python).
+3. Set up platform specific accounts etc. Please be aware that for most of them, costs may arise, although there are free trials.
+    *  [If you want to make use of RAG] Create an account at https://replicate.com and generate a token
+    *  [If you want to run the Anthropic models] Create an account at https://console.anthropic.com and generate a token
+    *  [If you want to run the OpenAI models] Create an account at https://platform.openai.com
+    *  [If you want to run the VertexAI models] Setup Authentication for VertexAI by following [this guide](https://cloud.google.com/vertex-ai/generative-ai/docs/start/quickstarts/quickstart-multimodal#python).
+    *  [If you want to run the OLLamma models] Download Ollama at https://ollama.com/
 
 4. Set up the necessary environment variables by creating a `.env` file in the project root directory and adding the API keys for the models you want to run:
     ```env
