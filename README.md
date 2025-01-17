@@ -61,11 +61,13 @@ python main.py --folder_name <folder_name> [--model <model>] [--method <method>]
 
 #### Arguments
 
-- `--folder_name` (string, required): The folder name containing the input files (`desc.txt`, `activities.txt`, `truth.txt`, `examples.txt`), results folder will be created in this folder. The folder is best named according to the process name.
+- `--input_folder` (string, required): The folder name containing the input files (`desc.txt`, `activities.txt`, `truth.txt`, `examples (few).txt`, `examples (few-cot).txt`), results folder will be created in this folder. The folder is best named according to the process name.
 - `--model` (string, optional): The model to use for classification. Defaults to `claude-3-5-haiku-latest`. Check `constants.py` for supported models.
 - `--method` (string, optional): The method to use for classification. Defaults to `vanilla`. Check `constants.py` for supported methods.
-- `--rag` (optional): Whether to use RAG for context retrieval. Defaults to `True`. Use `--no-rag` to disable.
-- `--path` (string, optional): The path to the parent folder of the folder_name containing the input files. Defaults to the same directory as the Python file.
+- `--rag` (flag, optional): Whether to use RAG for context retrieval. Defaults to `True`. Use `--no-rag` to disable.
+- `--dry_run` (flag, optional): Whether to mock all LLM requests. Defaults to `False`.
+- `--output_folder` (string, optional): The folder where all outputs are stored. Useful when running multiple sets of classifications.
+
 
 ### Example
 

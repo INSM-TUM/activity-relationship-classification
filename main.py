@@ -304,39 +304,18 @@ class Classifier:
             self.result_file.close()
 
 def main():
-    """
-    Main function to classify relationships between activities.
 
-    This function sets up the argument parser to accept command-line arguments, parses the arguments,
-    and initializes the Classifier class with the provided arguments. It then calls the classify_relationships
-    method to perform the classification.
-
-    Command-line arguments:
-    --folder_name (str, required): The folder name containing the following input files: desc.txt, activities.txt, truth.txt.
-    --model (str, optional): The model to use for classification. Defaults to 'claude-3-5-haiku-latest'. Check constants.py for supported models.
-    --method (str, optional): The method to use for classification. Defaults to 'vanilla'. Check constants.py for supported methods.
-    --rag (bool, optional): Whether to use RAG for context retrieval. Defaults to True. Use --no-rag to disable.
-    --path (str, optional): The path to the folder containing input files. Defaults to the same directory as the Python file.
-    --vertexai_project_name (str, optional): The Vertex AI project name.
-    --vertexai_location (str, optional): The Vertex AI location.
-
-    Returns:
-    None
-    """
     parser = argparse.ArgumentParser(description="Classify relationships between activities.")
-    parser.add_argument("--folder_name", required=True, type=str, help="The folder name containing the following input files: desc.txt, activities.txt, truth.txt")
+    parser.add_argument("--input_folder", required=True, type=str, help="The folder name containing the following input files: desc.txt, activities.txt, truth.txt, examples (few).txt, examples (few-cot).txt")
     parser.add_argument("--model", type=str, default="claude-3-5-haiku-latest", help="The model to use for classification. Check constants.py for supported models.")
     parser.add_argument("--method", type=str, default="vanilla", help="The method to use for classification. Check constants.py for supported methods.")
     parser.add_argument("--rag", type=bool, action=argparse.BooleanOptionalAction, default=True, help="Whether to use RAG for context retrieval. Defaults to True. Use --no-rag to disable.")
-    parser.add_argument("--path", type=str, default=str(pathlib.Path(__file__).parent), help="The path to the folder containing input files. Defaults to the same directory as the Python file.")
-    parser.add_argument("--vertexai_project_name", type=str, help="The Vertex AI project name")
-    parser.add_argument("--vertexai_location", type=str, help="The Vertex AI location")
+    parser.add_argument("--dry_run", type=bool, action=argparse.BooleanOptionalAction, default=False, help="Whether to mock all LLM requests.")
+    parser.add_argument("--output_folder", type=str, help="The folder where all outputs are stored. Useful when running multiple sets of classifications.")
 
     args = parser.parse_args()
 
-    folder_path = pathlib.Path(args.path) / args.folder_name
-    cls = Classifier(input_folder=folder_path, model=args.model, method=args.method, rag=args.rag,
-                     vertexai_project_name=args.vertexai_project_name, vertexai_location=args.vertexai_location)
+    cls = Classifier(input_folder=pathlib.Path(args.input_folder), model=args.model, method=args.method, rag=args.rag, dry_run=args.dry_run, output_folder=args.output_folder)
     cls.classify_relationships()
 
 if __name__ == "__main__":
